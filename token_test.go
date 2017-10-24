@@ -38,4 +38,12 @@ func TestTokenManagerGetTokenNotExpired(t *testing.T) {
 	assert.Equal(t, firstToken, secondToken, "don't expect tokens to be regenerated if not expired")
 }
 
+func newMockTokenManager() tokenManager {
+	return &mockTokenManager{}
+}
+
+type mockTokenManager struct{}
+
+func (mtm *mockTokenManager) getToken() (string, error) { return "", nil }
+
 // TODO rigerous SU and User token generation func tests

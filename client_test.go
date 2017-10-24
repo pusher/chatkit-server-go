@@ -32,6 +32,7 @@ func TestNewRequest(t *testing.T) {
 			name: "valid with body AUTH",
 			client: &chatkitServerClient{
 				authEndpoint: "https://host/services/chatkit_authorizer/v1/abc123",
+				tokenManager: newMockTokenManager(),
 			},
 			args: args{
 				method:  "GET",
@@ -46,6 +47,7 @@ func TestNewRequest(t *testing.T) {
 			name: "valid without body AUTH",
 			client: &chatkitServerClient{
 				authEndpoint: "https://host/services/chatkit_authorizer/v1/abc123",
+				tokenManager: newMockTokenManager(),
 			},
 			args: args{
 				method:  "GET",
@@ -60,6 +62,7 @@ func TestNewRequest(t *testing.T) {
 			name: "valid without body SERVER",
 			client: &chatkitServerClient{
 				serverEndpoint: "https://host/services/chatkit/v1/abc123",
+				tokenManager:   newMockTokenManager(),
 			},
 			args: args{
 				method:  "GET",
@@ -74,6 +77,7 @@ func TestNewRequest(t *testing.T) {
 			name: "invalid no service",
 			client: &chatkitServerClient{
 				serverEndpoint: "https://host/services/chatkit/v1/abc123",
+				tokenManager:   newMockTokenManager(),
 			},
 			args: args{
 				method:  "GET",
@@ -101,6 +105,7 @@ func newTestClientAndServer(handler http.Handler) (*chatkitServerClient, *httpte
 		Client:         http.Client{},
 		authEndpoint:   testServer.URL,
 		serverEndpoint: testServer.URL,
+		tokenManager:   newMockTokenManager(),
 	}
 
 	return testClient, testServer

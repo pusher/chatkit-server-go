@@ -14,7 +14,7 @@ import (
 
 // ChatkitServerClient is the public interface of the Chatkit Server Client
 type ChatkitServerClient interface {
-	// Chatkit Roles and Permissions services
+	// Chatkit Roles and Permissions methods
 	GetRoles() ([]Role, error)
 	CreateRole(Role) error
 	DeleteRole(roleName string, scopeType string) error
@@ -28,7 +28,7 @@ type ChatkitServerClient interface {
 	GetRolePermissions(roleName string, scopeName string) (*RolePermissions, error)
 	EditRolePermissions(roleName string, scopeName string, rolePerms RolePermissions) error
 
-	// Chatkit Server services
+	// Chatkit Server methods
 	CreateUser(user User) error
 	DeleteUser(userID string) error
 }
@@ -53,13 +53,13 @@ func NewChatkitServerClient(instanceID string, key string) (ChatkitServerClient,
 type chatkitServerClient struct {
 	Client http.Client
 
-	tokenManager *tokenManager
+	tokenManager tokenManager
 
 	authEndpoint   string
 	serverEndpoint string
 }
 
-func newChatkitServerClient(host string, apiVersion string, appID string, tokenManager *tokenManager) *chatkitServerClient {
+func newChatkitServerClient(host string, apiVersion string, appID string, tokenManager tokenManager) *chatkitServerClient {
 	return &chatkitServerClient{
 		Client: http.Client{
 			Transport: &http.Transport{
@@ -99,6 +99,12 @@ func (csc *chatkitServerClient) newRequest(method, service, path string, body in
 	if body != nil {
 		req.Header.Set("Content-Type", "application/json")
 	}
+
+	token, err := csc.tokenManager.getToken()
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", "Bearer "+token)
 
 	return req, nil
 }

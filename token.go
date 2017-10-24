@@ -7,7 +7,11 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 )
 
-type tokenManager struct {
+type tokenManager interface {
+	getToken() (string, error)
+}
+
+type suTokenManager struct {
 	tokenExpiry time.Time
 	token       string
 	mutex       sync.Mutex
@@ -17,8 +21,8 @@ type tokenManager struct {
 	keySecret string
 }
 
-func newTokenManager(appID string, keyID string, keySecret string) *tokenManager {
-	return &tokenManager{
+func newTokenManager(appID string, keyID string, keySecret string) tokenManager {
+	return &suTokenManager{
 		tokenExpiry: time.Now().Add(-time.Minute),
 		mutex:       sync.Mutex{},
 
@@ -28,19 +32,19 @@ func newTokenManager(appID string, keyID string, keySecret string) *tokenManager
 	}
 }
 
-func (tm *tokenManager) getToken() (string, error) {
-	tm.mutex.Lock()
-	defer tm.mutex.Unlock()
+func (stm *suTokenManager) getToken() (string, error) {
+	stm.mutex.Lock()
+	defer stm.mutex.Unlock()
 
-	if time.Now().After(tm.tokenExpiry) {
-		tokenString, tokenExpiry, err := NewChatkitSUToken(tm.appID, tm.keyID, tm.keySecret, time.Hour*24)
+	if time.Now().After(stm.tokenExpiry) {
+		tokenString, tokenExpiry, err := NewChatkitSUToken(stm.appID, stm.keyID, stm.keySecret, time.Hour*24)
 		if err != nil {
 			return "", err
 		}
-		tm.tokenExpiry = tokenExpiry
-		tm.token = tokenString
+		stm.tokenExpiry = tokenExpiry
+		stm.token = tokenString
 	}
-	return tm.token, nil
+	return stm.token, nil
 }
 
 func NewChatkitSUToken(appID string, keyID string, keySecret string, expiryDuration time.Duration) (tokenString string, expiry time.Time, err error) {
