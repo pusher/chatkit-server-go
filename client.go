@@ -9,6 +9,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"strings"
 )
 
 // ChatkitServerClient is the public interface of the Chatkit Server Client
@@ -32,20 +33,39 @@ type ChatkitServerClient interface {
 	DeleteUser(userID string) error
 }
 
+// // NewChatkitServerClient returns an instantiated instance that fulfils the ChatkitServerClient interface
+// func NewChatkitServerClient(host string, apiVersion string, appID string) (ChatkitServerClient, error) {
+// 	return newChatkitServerClient(host, apiVersion, appID)
+// }
+
 // NewChatkitServerClient returns an instantiated instance that fulfils the ChatkitServerClient interface
-func NewChatkitServerClient(host string, apiVersion string, appID string) (ChatkitServerClient, error) {
+func NewChatkitServerClient(instanceID string, key string) (ChatkitServerClient, error) {
+	apiVersion, host, appID, err := getInstanceIDComponents(instanceID)
+	if err != nil {
+		return nil, err
+	}
+
 	return newChatkitServerClient(host, apiVersion, appID)
 }
 
-// // NewChatkitServerClient returns an instantiated instance that fulfils the ChatkitServerClient interface
-// func NewChatkitServerClient(instanceID string, key string) (ChatkitServerClient, error) {
-// 	apiVersion, host, appID, err := getIntanceIDComponents(instanceID)
-// 	if err != nil {
-// 		return err
-// 	}
+func getInstanceIDComponents(instanceID string) (apiVersion string, host string, appID string, err error) {
+	if instanceID == "" {
+		return "", "", "", errors.New("empty instanceID")
+	}
 
-// 	return newChatkitServerClient(host, apiVersion, appID)
-// }
+	components := strings.Split(instanceID, ":")
+	if len(components) != 3 {
+		return "", "", "", errors.New("incorrect instanceID format")
+	}
+
+	for _, component := range components {
+		if component == "" {
+			return "", "", "", errors.New("incorrect instanceID format")
+		}
+	}
+
+	return components[0], components[1], components[2], nil
+}
 
 type chatkitServerClient struct {
 	Client http.Client
