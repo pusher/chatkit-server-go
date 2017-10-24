@@ -33,11 +33,6 @@ type ChatkitServerClient interface {
 	DeleteUser(userID string) error
 }
 
-// // NewChatkitServerClient returns an instantiated instance that fulfils the ChatkitServerClient interface
-// func NewChatkitServerClient(host string, apiVersion string, appID string) (ChatkitServerClient, error) {
-// 	return newChatkitServerClient(host, apiVersion, appID)
-// }
-
 // NewChatkitServerClient returns an instantiated instance that fulfils the ChatkitServerClient interface
 func NewChatkitServerClient(instanceID string, key string) (ChatkitServerClient, error) {
 	apiVersion, host, appID, err := getInstanceIDComponents(instanceID)
@@ -45,39 +40,22 @@ func NewChatkitServerClient(instanceID string, key string) (ChatkitServerClient,
 		return nil, err
 	}
 
+	// TODO make the token thingy here
+
 	return newChatkitServerClient(host, apiVersion, appID)
-}
-
-func getInstanceIDComponents(instanceID string) (apiVersion string, host string, appID string, err error) {
-	if instanceID == "" {
-		return "", "", "", errors.New("empty instanceID")
-	}
-
-	components := strings.Split(instanceID, ":")
-	if len(components) != 3 {
-		return "", "", "", errors.New("incorrect instanceID format")
-	}
-
-	for _, component := range components {
-		if component == "" {
-			return "", "", "", errors.New("incorrect instanceID format")
-		}
-	}
-
-	return components[0], components[1], components[2], nil
 }
 
 type chatkitServerClient struct {
 	Client http.Client
 
-	endpoint string
+	keySecret string
+	keyID     string
+
+	authEndpoint   string
+	serverEndpoint string
 }
 
 func newChatkitServerClient(host string, apiVersion string, appID string) (*chatkitServerClient, error) {
-	endpoint, err := buildEndpoint(host, apiVersion, appID)
-	if err != nil {
-		return nil, err
-	}
 
 	return &chatkitServerClient{
 		Client: http.Client{
@@ -85,12 +63,21 @@ func newChatkitServerClient(host string, apiVersion string, appID string) (*chat
 				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 			},
 		},
-		endpoint: endpoint,
+		authEndpoint:   buildServiceEndpoint(host, CHATKIT_AUTH, apiVersion, appID),
+		serverEndpoint: buildServiceEndpoint(host, CHATKIT_SERVER, apiVersion, appID),
 	}, nil
 }
 
-func (csc *chatkitServerClient) newRequest(method, path string, body interface{}) (*http.Request, error) {
-	url := csc.endpoint + path
+func (csc *chatkitServerClient) newRequest(method, service, path string, body interface{}) (*http.Request, error) {
+	var url string
+	switch service {
+	case CHATKIT_AUTH:
+		url = csc.authEndpoint + path
+	case CHATKIT_SERVER:
+		url = csc.serverEndpoint + path
+	default:
+		return nil, errors.New("no service was provided to newRequest")
+	}
 
 	var buf io.ReadWriter
 	if body != nil {
@@ -133,18 +120,46 @@ func (csc *chatkitServerClient) do(req *http.Request, v interface{}) error {
 	return nil
 }
 
-func buildEndpoint(host string, apiVersion string, appID string) (string, error) {
-	if host == "" || apiVersion == "" || appID == "" {
-		return "", errors.New("APIVersion, Cluster and AppID must be non zero length strings")
-	}
+const (
+	CHATKIT_AUTH   = "chatkit_authorizer"
+	CHATKIT_SERVER = "chatkit"
+)
 
-	return fmt.Sprint("https://", host, "/services/chatkit_authorizer/", apiVersion, "/", appID), nil
+func buildServiceEndpoint(host string, service string, apiVersion string, appID string) string {
+	return fmt.Sprint("https://", host, "/services/", service, "/", apiVersion, "/", appID)
 }
 
-func buildServiceEndpoint(host string, service string, apiVersion string, appID string) (string, error) {
-	if host == "" || apiVersion == "" || appID == "" {
-		return "", errors.New("APIVersion, Cluster and AppID must be non zero length strings")
+func getInstanceIDComponents(instanceID string) (apiVersion string, host string, appID string, err error) {
+	components, err := getColonSeperatedComponents(instanceID, 3)
+	if err != nil {
+		return "", "", "", err
+	}
+	return components[0], components[1], components[2], nil
+}
+
+func getKeyComponents(key string) (keyID string, keySecret string, err error) {
+	components, err := getColonSeperatedComponents(key, 2)
+	if err != nil {
+		return "", "", err
+	}
+	return components[0], components[1], nil
+}
+
+func getColonSeperatedComponents(s string, expectedComponents int) ([]string, error) {
+	if s == "" {
+		return nil, errors.New("empty string")
 	}
 
-	return fmt.Sprint("https://", host, "/services/", service, "/", apiVersion, "/", appID), nil
+	components := strings.Split(s, ":")
+	if len(components) != expectedComponents {
+		return nil, errors.New("incorrect format")
+	}
+
+	for _, component := range components {
+		if component == "" {
+			return nil, errors.New("incorrect format")
+		}
+	}
+
+	return components, nil
 }

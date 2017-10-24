@@ -14,7 +14,7 @@ type Role struct {
 }
 
 func (csc *chatkitServerClient) CreateRole(role Role) error {
-	req, err := csc.newRequest(http.MethodPost, "/roles", role)
+	req, err := csc.newRequest(http.MethodPost, CHATKIT_AUTH, "/roles", role)
 	if err != nil {
 		return err
 	}
@@ -23,7 +23,7 @@ func (csc *chatkitServerClient) CreateRole(role Role) error {
 }
 
 func (csc *chatkitServerClient) GetRoles() ([]Role, error) {
-	req, err := csc.newRequest(http.MethodGet, "/roles", nil)
+	req, err := csc.newRequest(http.MethodGet, CHATKIT_AUTH, "/roles", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +40,7 @@ func (csc *chatkitServerClient) DeleteRole(roleName string, scopeType string) er
 	}
 
 	path := fmt.Sprint("/roles/", roleName, "/scope/", scopeType)
-	req, err := csc.newRequest(http.MethodDelete, path, nil)
+	req, err := csc.newRequest(http.MethodDelete, CHATKIT_AUTH, path, nil)
 	if err != nil {
 		return err
 	}

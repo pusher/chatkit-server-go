@@ -12,7 +12,7 @@ type RolePermissions struct {
 
 func (csc *chatkitServerClient) CreateRolePermissions(roleName string, scopeName string, rolePerms RolePermissions) error {
 	path := fmt.Sprint("/roles/", roleName, "/scope/", scopeName, "/permissions")
-	req, err := csc.newRequest(http.MethodPost, path, rolePerms)
+	req, err := csc.newRequest(http.MethodPost, CHATKIT_AUTH, path, rolePerms)
 	if err != nil {
 		return err
 	}
@@ -22,7 +22,7 @@ func (csc *chatkitServerClient) CreateRolePermissions(roleName string, scopeName
 
 func (csc *chatkitServerClient) GetRolePermissions(roleName string, scopeName string) (*RolePermissions, error) {
 	path := fmt.Sprint("/roles/", roleName, "/scope/", scopeName, "/permissions")
-	req, err := csc.newRequest(http.MethodGet, path, nil)
+	req, err := csc.newRequest(http.MethodGet, CHATKIT_AUTH, path, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +35,7 @@ func (csc *chatkitServerClient) GetRolePermissions(roleName string, scopeName st
 
 func (csc *chatkitServerClient) EditRolePermissions(roleName string, scopeName string, rolePerms RolePermissions) error {
 	path := fmt.Sprint("/roles/", roleName, "/scope/", scopeName, "/permissions")
-	req, err := csc.newRequest(http.MethodPut, path, rolePerms)
+	req, err := csc.newRequest(http.MethodPut, CHATKIT_AUTH, path, rolePerms)
 	if err != nil {
 		return err
 	}

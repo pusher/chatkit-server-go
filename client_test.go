@@ -8,26 +8,18 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestBuildEndpointValid(t *testing.T) {
+func TestBuildServiceEndpoint(t *testing.T) {
+	endpoint := buildServiceEndpoint("host", CHATKIT_AUTH, "v1", "abc123")
 
-	endpoint, err := buildEndpoint("cluster.pusherplatform.io", "api_version", "app_id")
-
-	assert.NoError(t, err, "Should not return error with valid client endpoint variables")
-	assert.Equal(t, "https://cluster.pusherplatform.io/services/chatkit_authorizer/api_version/app_id", endpoint, "Should return a correctly fomatted endpoint")
-}
-
-func TestBuildEndpointInvalid(t *testing.T) {
-	endpoint, err := buildEndpoint("", "", "")
-
-	assert.Error(t, err, "Should return error when testClient endpoint variables are empty")
-	assert.Equal(t, "", endpoint, "Should return a an empty string")
+	assert.Equal(t, "https://host/services/chatkit_authorizer/v1/abc123", endpoint, "Should return a correctly fomatted endpoint")
 }
 
 func TestNewRequest(t *testing.T) {
 	type args struct {
-		method string
-		path   string
-		body   interface{}
+		method  string
+		service string
+		path    string
+		body    interface{}
 	}
 	tests := []struct {
 		name          string
@@ -37,35 +29,65 @@ func TestNewRequest(t *testing.T) {
 		expectErr     bool
 	}{
 		{
-			name: "valid with body",
+			name: "valid with body AUTH",
 			client: &chatkitServerClient{
-				endpoint: "pusher.com",
+				authEndpoint: "https://host/services/chatkit_authorizer/v1/abc123",
 			},
 			args: args{
-				method: "GET",
-				path:   "/roles",
-				body:   "request_body!",
+				method:  "GET",
+				service: CHATKIT_AUTH,
+				path:    "/roles",
+				body:    "request_body!",
 			},
 			expectRequest: true,
 			expectErr:     false,
 		},
 		{
-			name: "valid without body",
+			name: "valid without body AUTH",
 			client: &chatkitServerClient{
-				endpoint: "pusher.com",
+				authEndpoint: "https://host/services/chatkit_authorizer/v1/abc123",
 			},
 			args: args{
-				method: "GET",
-				path:   "/roles",
-				body:   nil,
+				method:  "GET",
+				service: CHATKIT_AUTH,
+				path:    "/roles",
+				body:    nil,
 			},
 			expectRequest: true,
 			expectErr:     false,
 		},
+		{
+			name: "valid without body SERVER",
+			client: &chatkitServerClient{
+				serverEndpoint: "https://host/services/chatkit/v1/abc123",
+			},
+			args: args{
+				method:  "GET",
+				service: CHATKIT_SERVER,
+				path:    "/roles",
+				body:    nil,
+			},
+			expectRequest: true,
+			expectErr:     false,
+		},
+		{
+			name: "invalid no service",
+			client: &chatkitServerClient{
+				serverEndpoint: "https://host/services/chatkit/v1/abc123",
+			},
+			args: args{
+				method:  "GET",
+				service: "invalid service",
+				path:    "/roles",
+				body:    nil,
+			},
+			expectRequest: false,
+			expectErr:     true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actualRequest, err := tt.client.newRequest(tt.args.method, tt.args.path, tt.args.body)
+			actualRequest, err := tt.client.newRequest(tt.args.method, tt.args.service, tt.args.path, tt.args.body)
 			assert.Equal(t, tt.expectErr, (err != nil), "Unexpected error returned")
 			assert.Equal(t, tt.expectRequest, (actualRequest != nil), "Unexpected request returned")
 		})
@@ -76,8 +98,9 @@ func newTestClientAndServer(handler http.Handler) (*chatkitServerClient, *httpte
 	testServer := httptest.NewServer(handler)
 
 	testClient := &chatkitServerClient{
-		Client:   http.Client{},
-		endpoint: testServer.URL,
+		Client:         http.Client{},
+		authEndpoint:   testServer.URL,
+		serverEndpoint: testServer.URL,
 	}
 
 	return testClient, testServer
@@ -133,6 +156,52 @@ func TestGetInstanceIDComponents(t *testing.T) {
 			assert.Equal(t, tt.expectedAPIVersion, gotAPIVersion, "Unexpected APIVersion returned")
 			assert.Equal(t, tt.expectedAppID, gotAppID, "Unexpected AppID returned")
 			assert.Equal(t, tt.expectedHost, gotHost, "Unexpected Host returned")
+		})
+	}
+}
+
+func TestGetKeyComponents(t *testing.T) {
+	tests := []struct {
+		name              string
+		key               string
+		expectedKeyID     string
+		expectedKeySecret string
+		expectError       bool
+	}{
+		{
+			name:        "empty string",
+			key:         "",
+			expectError: true,
+		},
+		{
+			name:        "no colons",
+			key:         "notValid",
+			expectError: true,
+		},
+		{
+			name:        "correct colons with no text",
+			key:         ":",
+			expectError: true,
+		},
+		{
+			name:        "empty components",
+			key:         ":incorrect",
+			expectError: true,
+		},
+		{
+			name:              "valid",
+			key:               "id:secret",
+			expectedKeyID:     "id",
+			expectedKeySecret: "secret",
+			expectError:       false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotKeyID, gotKeySecret, err := getKeyComponents(tt.key)
+			assert.Equal(t, tt.expectError, (err != nil), "Unexpected error returned")
+			assert.Equal(t, tt.expectedKeyID, gotKeyID, "Unexpected keyID returned")
+			assert.Equal(t, tt.expectedKeySecret, gotKeySecret, "Unexpected keySecret returned")
 		})
 	}
 }

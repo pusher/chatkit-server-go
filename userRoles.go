@@ -18,7 +18,7 @@ func (csc *chatkitServerClient) GetUserRoles(userID string) ([]Role, error) {
 	}
 
 	path := fmt.Sprint("/users/", userID, "/roles")
-	req, err := csc.newRequest(http.MethodGet, path, nil)
+	req, err := csc.newRequest(http.MethodGet, CHATKIT_AUTH, path, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -31,7 +31,7 @@ func (csc *chatkitServerClient) GetUserRoles(userID string) ([]Role, error) {
 
 func (csc *chatkitServerClient) CreateUserRole(userID string, userRole UserRole) error {
 	path := fmt.Sprint("/users/", userID, "/roles")
-	req, err := csc.newRequest(http.MethodPost, path, userRole)
+	req, err := csc.newRequest(http.MethodPost, CHATKIT_AUTH, path, userRole)
 	if err != nil {
 		return err
 	}
@@ -41,7 +41,7 @@ func (csc *chatkitServerClient) CreateUserRole(userID string, userRole UserRole)
 
 func (csc *chatkitServerClient) UpdateUserRole(userID string, userRole UserRole) error {
 	path := fmt.Sprint("/users/", userID, "/roles")
-	req, err := csc.newRequest(http.MethodPut, path, userRole)
+	req, err := csc.newRequest(http.MethodPut, CHATKIT_AUTH, path, userRole)
 	if err != nil {
 		return err
 	}
@@ -54,7 +54,7 @@ func (csc *chatkitServerClient) DeleteUserRole(userID string, roomID *string) er
 	if roomID != nil {
 		path = path + "?room_id=" + *roomID
 	}
-	req, err := csc.newRequest(http.MethodDelete, path, nil)
+	req, err := csc.newRequest(http.MethodDelete, CHATKIT_AUTH, path, nil)
 	if err != nil {
 		return err
 	}
