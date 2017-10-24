@@ -40,23 +40,26 @@ func NewChatkitServerClient(instanceID string, key string) (ChatkitServerClient,
 		return nil, err
 	}
 
-	// TODO make the token thingy here
+	keyID, keySecret, err := getKeyComponents(key)
+	if err != nil {
+		return nil, err
+	}
 
-	return newChatkitServerClient(host, apiVersion, appID)
+	tokenManager := newTokenManager(appID, keyID, keySecret)
+
+	return newChatkitServerClient(host, apiVersion, appID, tokenManager), nil
 }
 
 type chatkitServerClient struct {
 	Client http.Client
 
-	keySecret string
-	keyID     string
+	tokenManager *tokenManager
 
 	authEndpoint   string
 	serverEndpoint string
 }
 
-func newChatkitServerClient(host string, apiVersion string, appID string) (*chatkitServerClient, error) {
-
+func newChatkitServerClient(host string, apiVersion string, appID string, tokenManager *tokenManager) *chatkitServerClient {
 	return &chatkitServerClient{
 		Client: http.Client{
 			Transport: &http.Transport{
@@ -65,7 +68,8 @@ func newChatkitServerClient(host string, apiVersion string, appID string) (*chat
 		},
 		authEndpoint:   buildServiceEndpoint(host, CHATKIT_AUTH, apiVersion, appID),
 		serverEndpoint: buildServiceEndpoint(host, CHATKIT_SERVER, apiVersion, appID),
-	}, nil
+		tokenManager:   tokenManager,
+	}
 }
 
 func (csc *chatkitServerClient) newRequest(method, service, path string, body interface{}) (*http.Request, error) {
