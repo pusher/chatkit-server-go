@@ -51,7 +51,7 @@ func NewChatkitSUToken(appID string, keyID string, keySecret string, expiryDurat
 
 ## Examples
 
-Please refer to the examples directory.
+Please refer to the /example directory.
 
 ## Documentation
 

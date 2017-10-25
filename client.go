@@ -14,7 +14,6 @@ package chatkitServerGo
 
 import (
 	"bytes"
-	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -80,11 +79,7 @@ type chatkitServerClient struct {
 
 func newChatkitServerClient(host string, apiVersion string, appID string, tokenManager tokenManager) *chatkitServerClient {
 	return &chatkitServerClient{
-		Client: http.Client{
-			Transport: &http.Transport{
-				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-			},
-		},
+		Client:         http.Client{},
 		authEndpoint:   buildServiceEndpoint(host, chatkitAuthService, apiVersion, appID),
 		serverEndpoint: buildServiceEndpoint(host, chatkitService, apiVersion, appID),
 		tokenManager:   tokenManager,
@@ -150,7 +145,7 @@ func (csc *chatkitServerClient) do(req *http.Request, v interface{}) error {
 }
 
 func buildServiceEndpoint(host string, service string, apiVersion string, appID string) string {
-	return fmt.Sprint("https://", host, "/services/", service, "/", apiVersion, "/", appID)
+	return fmt.Sprint("https://", host, ".pusherplatform.io/services/", service, "/", apiVersion, "/", appID)
 }
 
 func getInstanceIDComponents(instanceID string) (apiVersion string, host string, appID string, err error) {
