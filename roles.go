@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-// Role is a type used by the /Role endpoints to define a role
+// Role is a type used by the role methods to define a role
 type Role struct {
 	Name        string   `json:"name"`        // (string| required): Name of the new role.
 	Permissions []string `json:"permissions"` // (array| required): Permissions assigned to the role.
@@ -14,7 +14,7 @@ type Role struct {
 }
 
 func (csc *chatkitServerClient) CreateRole(role Role) error {
-	req, err := csc.newRequest(http.MethodPost, CHATKIT_AUTH, "/roles", role)
+	req, err := csc.newRequest(http.MethodPost, chatkitAuthService, "/roles", role)
 	if err != nil {
 		return err
 	}
@@ -23,7 +23,7 @@ func (csc *chatkitServerClient) CreateRole(role Role) error {
 }
 
 func (csc *chatkitServerClient) GetRoles() ([]Role, error) {
-	req, err := csc.newRequest(http.MethodGet, CHATKIT_AUTH, "/roles", nil)
+	req, err := csc.newRequest(http.MethodGet, chatkitAuthService, "/roles", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +40,7 @@ func (csc *chatkitServerClient) DeleteRole(roleName string, scopeType string) er
 	}
 
 	path := fmt.Sprint("/roles/", roleName, "/scope/", scopeType)
-	req, err := csc.newRequest(http.MethodDelete, CHATKIT_AUTH, path, nil)
+	req, err := csc.newRequest(http.MethodDelete, chatkitAuthService, path, nil)
 	if err != nil {
 		return err
 	}

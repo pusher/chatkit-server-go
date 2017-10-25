@@ -86,5 +86,3 @@ func newMockTokenManager() tokenManager {
 type mockTokenManager struct{}
 
 func (mtm *mockTokenManager) getToken() (string, error) { return "", nil }
-
-// TODO rigerous SU and User token generation func tests

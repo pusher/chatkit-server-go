@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-// UserRole is a type used by the CreateUserRole method to create a user role
+// UserRole is a type used by the CreateUserRole method to define a user role
 type UserRole struct {
 	Name   string `json:"name"`              // (string| required): Name of the role. If no room_id value is provided then the scope will be global.
 	RoomID int    `json:"room_id,omitempty"` // (integer| optional): The ID of the room you want to create the user role for.
@@ -18,7 +18,7 @@ func (csc *chatkitServerClient) GetUserRoles(userID string) ([]Role, error) {
 	}
 
 	path := fmt.Sprint("/users/", userID, "/roles")
-	req, err := csc.newRequest(http.MethodGet, CHATKIT_AUTH, path, nil)
+	req, err := csc.newRequest(http.MethodGet, chatkitAuthService, path, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -31,7 +31,7 @@ func (csc *chatkitServerClient) GetUserRoles(userID string) ([]Role, error) {
 
 func (csc *chatkitServerClient) CreateUserRole(userID string, userRole UserRole) error {
 	path := fmt.Sprint("/users/", userID, "/roles")
-	req, err := csc.newRequest(http.MethodPost, CHATKIT_AUTH, path, userRole)
+	req, err := csc.newRequest(http.MethodPost, chatkitAuthService, path, userRole)
 	if err != nil {
 		return err
 	}
@@ -41,7 +41,7 @@ func (csc *chatkitServerClient) CreateUserRole(userID string, userRole UserRole)
 
 func (csc *chatkitServerClient) UpdateUserRole(userID string, userRole UserRole) error {
 	path := fmt.Sprint("/users/", userID, "/roles")
-	req, err := csc.newRequest(http.MethodPut, CHATKIT_AUTH, path, userRole)
+	req, err := csc.newRequest(http.MethodPut, chatkitAuthService, path, userRole)
 	if err != nil {
 		return err
 	}
@@ -54,7 +54,7 @@ func (csc *chatkitServerClient) DeleteUserRole(userID string, roomID *string) er
 	if roomID != nil {
 		path = path + "?room_id=" + *roomID
 	}
-	req, err := csc.newRequest(http.MethodDelete, CHATKIT_AUTH, path, nil)
+	req, err := csc.newRequest(http.MethodDelete, chatkitAuthService, path, nil)
 	if err != nil {
 		return err
 	}

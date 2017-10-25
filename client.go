@@ -1,3 +1,15 @@
+/*
+Package chatkitServerGo is the Golang server SDK for Pusher Chatkit.
+
+This package provides the ChatkitServerClient type for managing Chatkit users and
+interacting with roles and permissions of those users. It also contains some helper
+functions for creating your own JWT tokens for authentication with the Chatkit
+service.
+
+More information can be found in the Chatkit docs: https://docs.pusher.com/chatkit/overview/
+
+Please report any bugs or feature requests at: https://github.com/pusher/chatkit-server-go
+*/
 package chatkitServerGo
 
 import (
@@ -12,7 +24,14 @@ import (
 	"strings"
 )
 
-// ChatkitServerClient is the public interface of the Chatkit Server Client
+const (
+	chatkitAuthService = "chatkit_authorizer"
+	chatkitService     = "chatkit"
+)
+
+// ChatkitServerClient is the public interface of the Chatkit Server Client.
+// It contains methods for creating and deleting users and managing those user's
+// roles and permissions.
 type ChatkitServerClient interface {
 	// Chatkit Roles and Permissions methods
 	GetRoles() ([]Role, error)
@@ -66,8 +85,8 @@ func newChatkitServerClient(host string, apiVersion string, appID string, tokenM
 				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 			},
 		},
-		authEndpoint:   buildServiceEndpoint(host, CHATKIT_AUTH, apiVersion, appID),
-		serverEndpoint: buildServiceEndpoint(host, CHATKIT_SERVER, apiVersion, appID),
+		authEndpoint:   buildServiceEndpoint(host, chatkitAuthService, apiVersion, appID),
+		serverEndpoint: buildServiceEndpoint(host, chatkitService, apiVersion, appID),
 		tokenManager:   tokenManager,
 	}
 }
@@ -75,9 +94,9 @@ func newChatkitServerClient(host string, apiVersion string, appID string, tokenM
 func (csc *chatkitServerClient) newRequest(method, service, path string, body interface{}) (*http.Request, error) {
 	var url string
 	switch service {
-	case CHATKIT_AUTH:
+	case chatkitAuthService:
 		url = csc.authEndpoint + path
-	case CHATKIT_SERVER:
+	case chatkitService:
 		url = csc.serverEndpoint + path
 	default:
 		return nil, errors.New("no service was provided to newRequest")
@@ -129,11 +148,6 @@ func (csc *chatkitServerClient) do(req *http.Request, v interface{}) error {
 	}
 	return nil
 }
-
-const (
-	CHATKIT_AUTH   = "chatkit_authorizer"
-	CHATKIT_SERVER = "chatkit"
-)
 
 func buildServiceEndpoint(host string, service string, apiVersion string, appID string) string {
 	return fmt.Sprint("https://", host, "/services/", service, "/", apiVersion, "/", appID)

@@ -9,7 +9,7 @@ import (
 )
 
 func TestBuildServiceEndpoint(t *testing.T) {
-	endpoint := buildServiceEndpoint("host", CHATKIT_AUTH, "v1", "abc123")
+	endpoint := buildServiceEndpoint("host", chatkitAuthService, "v1", "abc123")
 
 	assert.Equal(t, "https://host/services/chatkit_authorizer/v1/abc123", endpoint, "Should return a correctly fomatted endpoint")
 }
@@ -36,7 +36,7 @@ func TestNewRequest(t *testing.T) {
 			},
 			args: args{
 				method:  "GET",
-				service: CHATKIT_AUTH,
+				service: chatkitAuthService,
 				path:    "/roles",
 				body:    "request_body!",
 			},
@@ -51,7 +51,7 @@ func TestNewRequest(t *testing.T) {
 			},
 			args: args{
 				method:  "GET",
-				service: CHATKIT_AUTH,
+				service: chatkitAuthService,
 				path:    "/roles",
 				body:    nil,
 			},
@@ -66,7 +66,7 @@ func TestNewRequest(t *testing.T) {
 			},
 			args: args{
 				method:  "GET",
-				service: CHATKIT_SERVER,
+				service: chatkitService,
 				path:    "/roles",
 				body:    nil,
 			},

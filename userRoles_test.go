@@ -33,7 +33,18 @@ func TestGetUserRolesFail(t *testing.T) {
 
 	roles, err := testClient.GetUserRoles("userID")
 	assert.Empty(t, roles, "Should be empty")
-	assert.NotNil(t, err, "expected no error")
+	assert.NotNil(t, err, "expected error")
+}
+
+func TestGetUserRolesInvalidInput(t *testing.T) {
+	testClient, testServer := newTestClientAndServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		return
+	}))
+	defer testServer.Close()
+
+	roles, err := testClient.GetUserRoles("")
+	assert.Empty(t, roles, "Should be empty")
+	assert.Error(t, err, "expected error")
 }
 
 func TestCreateUserRolesSuccess(t *testing.T) {
