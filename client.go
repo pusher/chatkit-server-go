@@ -47,7 +47,7 @@ type ChatkitServerClient interface {
 	GetRolePermissions(roleName string, scopeName string) (*RolePermissions, error)
 	EditRolePermissions(roleName string, scopeName string, rolePerms RolePermissions) error
 
-	// Chatkit Server methods
+	// Chatkit User methods
 	CreateUser(user User) error
 	DeleteUser(userID string) error
 }
