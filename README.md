@@ -45,14 +45,18 @@ func NewChatkitSUToken(appID string, keyID string, keySecret string, expiryDurat
 
     $ go get pusher/chatkit-server-go
 
+## Getting Started
+
+Please refer to the /example directory.
+
 ## Tests
 
     $ go test -v -cover
 
-## Examples
-
-Please refer to the /example directory.
-
 ## Documentation
 
 Available in the [Pusher Docs](https://docs.pusher.com/chatkit/overview/).
+
+## License
+
+This code is free to use under the terms of the MIT license. Please refer to LICENSE.md for more information.
