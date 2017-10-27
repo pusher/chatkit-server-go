@@ -52,8 +52,8 @@ type ChatkitServerClient interface {
 }
 
 // NewChatkitServerClient returns an instantiated instance that fulfils the ChatkitServerClient interface
-func NewChatkitServerClient(instanceID string, key string) (ChatkitServerClient, error) {
-	apiVersion, host, appID, err := getInstanceIDComponents(instanceID)
+func NewChatkitServerClient(instanceLocator string, key string) (ChatkitServerClient, error) {
+	apiVersion, host, appID, err := getinstanceLocatorComponents(instanceLocator)
 	if err != nil {
 		return nil, err
 	}
@@ -148,8 +148,8 @@ func buildServiceEndpoint(host string, service string, apiVersion string, appID 
 	return fmt.Sprint("https://", host, ".pusherplatform.io/services/", service, "/", apiVersion, "/", appID)
 }
 
-func getInstanceIDComponents(instanceID string) (apiVersion string, host string, appID string, err error) {
-	components, err := getColonSeperatedComponents(instanceID, 3)
+func getinstanceLocatorComponents(instanceLocator string) (apiVersion string, host string, appID string, err error) {
+	components, err := getColonSeperatedComponents(instanceLocator, 3)
 	if err != nil {
 		return "", "", "", err
 	}

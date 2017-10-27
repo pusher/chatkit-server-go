@@ -9,13 +9,13 @@ import (
 )
 
 func main() {
-	instanceID := os.Getenv("CHATKIT_INSTANCE_ID")
+	instanceLocator := os.Getenv("CHATKIT_INSTANCE_ID")
 	key := os.Getenv("CHATKIT_KEY")
-	if instanceID == "" || key == "" {
+	if instanceLocator == "" || key == "" {
 		log.Fatalln("Please set the CHATKIT_INSTANCE_ID and CHATKIT_KEY environment variables to run the example")
 	}
 
-	serverClient, err := chatkitServerGo.NewChatkitServerClient(instanceID, key)
+	serverClient, err := chatkitServerGo.NewChatkitServerClient(instanceLocator, key)
 	handleErr("Instatiating ChatkitServerClient", err)
 
 	log.Println("Creating User")

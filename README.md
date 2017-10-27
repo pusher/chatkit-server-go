@@ -34,7 +34,7 @@ type ChatkitServerClient interface {
 }
 
 // NewChatkitServerClient instantiates a new ChatkitServerClient instance 
-func NewChatkitServerClient(instanceID string, key string) (ChatkitServerClient, error)
+func NewChatkitServerClient(instanceLocator string, key string) (ChatkitServerClient, error)
 
 // NewChatkitUserToken and NewChatkitSUToken are Chatkit JWT token generation helper functions
 func NewChatkitUserToken(appID string, keyID string, keySecret string, userID string, expiryDuration time.Duration) (tokenString string, expiry time.Time, err error)
