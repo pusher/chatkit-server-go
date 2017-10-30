@@ -13,7 +13,7 @@ type Role struct {
 	Scope       string   `json:"scope"`       // (string| required): Scope of the new role; one of global or room.
 }
 
-func (csc *chatkitServerClient) CreateRole(role Role) error {
+func (csc *client) CreateRole(role Role) error {
 	req, err := csc.newRequest(http.MethodPost, chatkitAuthService, "/roles", role)
 	if err != nil {
 		return err
@@ -22,7 +22,7 @@ func (csc *chatkitServerClient) CreateRole(role Role) error {
 	return csc.do(req, nil)
 }
 
-func (csc *chatkitServerClient) GetRoles() ([]Role, error) {
+func (csc *client) GetRoles() ([]Role, error) {
 	req, err := csc.newRequest(http.MethodGet, chatkitAuthService, "/roles", nil)
 	if err != nil {
 		return nil, err
@@ -34,7 +34,7 @@ func (csc *chatkitServerClient) GetRoles() ([]Role, error) {
 	return *roles, err
 }
 
-func (csc *chatkitServerClient) DeleteRole(roleName string, scopeType string) error {
+func (csc *client) DeleteRole(roleName string, scopeType string) error {
 	if roleName == "" || scopeType == "" {
 		return errors.New("Role name and Scope type cannot be empty strings")
 	}

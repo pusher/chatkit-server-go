@@ -1,7 +1,7 @@
 /*
 Package chatkit is the Golang server SDK for Pusher Chatkit.
 
-This package provides the ChatkitServerClient type for managing Chatkit users and
+This package provides the Client type for managing Chatkit users and
 interacting with roles and permissions of those users. It also contains some helper
 functions for creating your own JWT tokens for authentication with the Chatkit
 service.
@@ -28,10 +28,10 @@ const (
 	chatkitService     = "chatkit"
 )
 
-// ChatkitServerClient is the public interface of the Chatkit Server Client.
+// Client is the public interface of the Chatkit Server Client.
 // It contains methods for creating and deleting users and managing those user's
 // roles and permissions.
-type ChatkitServerClient interface {
+type Client interface {
 	// Chatkit Roles and Permissions methods
 	GetRoles() ([]Role, error)
 	CreateRole(Role) error
@@ -51,8 +51,8 @@ type ChatkitServerClient interface {
 	DeleteUser(userID string) error
 }
 
-// NewChatkitServerClient returns an instantiated instance that fulfils the ChatkitServerClient interface
-func NewChatkitServerClient(instanceLocator string, key string) (ChatkitServerClient, error) {
+// NewClient returns an instantiated instance that fulfils the Client interface
+func NewClient(instanceLocator string, key string) (Client, error) {
 	apiVersion, host, appID, err := getinstanceLocatorComponents(instanceLocator)
 	if err != nil {
 		return nil, err
@@ -65,10 +65,10 @@ func NewChatkitServerClient(instanceLocator string, key string) (ChatkitServerCl
 
 	tokenManager := newTokenManager(appID, keyID, keySecret)
 
-	return newChatkitServerClient(host, apiVersion, appID, tokenManager), nil
+	return newClient(host, apiVersion, appID, tokenManager), nil
 }
 
-type chatkitServerClient struct {
+type client struct {
 	Client http.Client
 
 	tokenManager tokenManager
@@ -77,8 +77,8 @@ type chatkitServerClient struct {
 	serverEndpoint string
 }
 
-func newChatkitServerClient(host string, apiVersion string, appID string, tokenManager tokenManager) *chatkitServerClient {
-	return &chatkitServerClient{
+func newClient(host string, apiVersion string, appID string, tokenManager tokenManager) *client {
+	return &client{
 		Client:         http.Client{},
 		authEndpoint:   buildServiceEndpoint(host, chatkitAuthService, apiVersion, appID),
 		serverEndpoint: buildServiceEndpoint(host, chatkitService, apiVersion, appID),
@@ -86,9 +86,9 @@ func newChatkitServerClient(host string, apiVersion string, appID string, tokenM
 	}
 }
 
-func (csc *chatkitServerClient) newRequest(method, service, path string, body interface{}) (*http.Request, error) {
+func (csc *client) newRequest(method, serviceName, path string, body interface{}) (*http.Request, error) {
 	var url string
-	switch service {
+	switch serviceName {
 	case chatkitAuthService:
 		url = csc.authEndpoint + path
 	case chatkitService:
@@ -123,7 +123,7 @@ func (csc *chatkitServerClient) newRequest(method, service, path string, body in
 	return req, nil
 }
 
-func (csc *chatkitServerClient) do(req *http.Request, v interface{}) error {
+func (csc *client) do(req *http.Request, responseBody interface{}) error {
 	resp, err := csc.Client.Do(req)
 	if err != nil {
 		return err
@@ -138,8 +138,8 @@ func (csc *chatkitServerClient) do(req *http.Request, v interface{}) error {
 		return errors.New(resp.Status + ": " + string(body))
 	}
 
-	if v != nil {
-		return json.NewDecoder(resp.Body).Decode(v)
+	if responseBody != nil {
+		return json.NewDecoder(resp.Body).Decode(responseBody)
 	}
 	return nil
 }
@@ -151,7 +151,7 @@ func buildServiceEndpoint(host string, service string, apiVersion string, appID 
 func getinstanceLocatorComponents(instanceLocator string) (apiVersion string, host string, appID string, err error) {
 	components, err := getColonSeperatedComponents(instanceLocator, 3)
 	if err != nil {
-		return "", "", "", err
+		return "", "", "", errors.New("Incorrect instanceLocator format give, please get your app instanceLocator from your user dashboard")
 	}
 	return components[0], components[1], components[2], nil
 }
@@ -159,7 +159,7 @@ func getinstanceLocatorComponents(instanceLocator string) (apiVersion string, ho
 func getKeyComponents(key string) (keyID string, keySecret string, err error) {
 	components, err := getColonSeperatedComponents(key, 2)
 	if err != nil {
-		return "", "", err
+		return "", "", errors.New("Incorrect key format give, please get your app key from your user dashboard")
 	}
 	return components[0], components[1], nil
 }

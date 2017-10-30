@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-
-	"github.com/pusher/chatkit-server-go"
 )
 
 func main() {
@@ -15,8 +13,8 @@ func main() {
 		log.Fatalln("Please set the CHATKIT_INSTANCE_ID and CHATKIT_KEY environment variables to run the example")
 	}
 
-	serverClient, err := chatkitServerGo.NewChatkitServerClient(instanceLocator, key)
-	handleErr("Instatiating ChatkitServerClient", err)
+	serverClient, err := chatkitServerGo.NewClient(instanceLocator, key)
+	handleErr("Instatiating Client", err)
 
 	log.Println("Creating User")
 	newUser := chatkitServerGo.User{

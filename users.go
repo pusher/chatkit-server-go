@@ -10,7 +10,7 @@ type User struct {
 	CustomData interface{} `json:"custom_data,omitempty"` // (object| optional): Custom data that may be associated with a user.
 }
 
-func (csc *chatkitServerClient) CreateUser(user User) error {
+func (csc *client) CreateUser(user User) error {
 	path := "/users"
 	req, err := csc.newRequest(http.MethodPost, chatkitService, path, user)
 	if err != nil {
@@ -20,7 +20,7 @@ func (csc *chatkitServerClient) CreateUser(user User) error {
 	return csc.do(req, nil)
 }
 
-func (csc *chatkitServerClient) DeleteUser(userID string) error {
+func (csc *client) DeleteUser(userID string) error {
 	path := "/users/" + userID
 	req, err := csc.newRequest(http.MethodDelete, chatkitService, path, nil)
 	if err != nil {

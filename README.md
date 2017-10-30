@@ -2,7 +2,7 @@
 
 package chatkit is the Golang server SDK for [Pusher Chatkit](https://pusher.com/chatkit).
 
-This package provides the ChatkitServerClient type for managing Chatkit users and
+This package provides the Client type for managing Chatkit users and
 interacting with roles and permissions of those users. It also contains some helper
 functions for creating your own JWT tokens for authentication with the Chatkit
 service.
@@ -12,8 +12,8 @@ Please report any bugs or feature requests via a Github issue on this repo.
 ## Interface
 
 ```go
-// ChatkitServerClient is the public interface of the Chatkit Server Client
-type ChatkitServerClient interface {
+// Client is the public interface of the Chatkit Server Client
+type Client interface {
     // Chatkit Roles and Permissions methods
     GetRoles() ([]Role, error)
     CreateRole(Role) error
@@ -33,8 +33,8 @@ type ChatkitServerClient interface {
     DeleteUser(userID string) error
 }
 
-// NewChatkitServerClient instantiates a new ChatkitServerClient instance 
-func NewChatkitServerClient(instanceLocator string, key string) (ChatkitServerClient, error)
+// NewClient instantiates a new Client instance 
+func NewClient(instanceLocator string, key string) (Client, error)
 
 // NewChatkitUserToken and NewChatkitSUToken are Chatkit JWT token generation helper functions
 func NewChatkitUserToken(appID string, keyID string, keySecret string, userID string, expiryDuration time.Duration) (tokenString string, expiry time.Time, err error)
