@@ -1,5 +1,5 @@
 /*
-Package chatkitServerGo is the Golang server SDK for Pusher Chatkit.
+Package chatkit is the Golang server SDK for Pusher Chatkit.
 
 This package provides the ChatkitServerClient type for managing Chatkit users and
 interacting with roles and permissions of those users. It also contains some helper
@@ -10,7 +10,7 @@ More information can be found in the Chatkit docs: https://docs.pusher.com/chatk
 
 Please report any bugs or feature requests at: https://github.com/pusher/chatkit-server-go
 */
-package chatkitServerGo
+package chatkit
 
 import (
 	"bytes"

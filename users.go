@@ -1,4 +1,4 @@
-package chatkitServerGo
+package chatkit
 
 import "net/http"
 
