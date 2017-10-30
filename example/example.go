@@ -16,7 +16,7 @@ func main() {
 	}
 
 	serverClient, err := chatkit.NewClient(instanceLocator, key)
-	handleErr("Instatiating Client", err)
+	handleErr("Instantiating Client", err)
 
 	log.Println("Creating User")
 	newUser := chatkit.User{
