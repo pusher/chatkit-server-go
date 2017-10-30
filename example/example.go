@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+
+	"github.com/pusher/chatkit-server-go"
 )
 
 func main() {
@@ -13,11 +15,11 @@ func main() {
 		log.Fatalln("Please set the CHATKIT_INSTANCE_ID and CHATKIT_KEY environment variables to run the example")
 	}
 
-	serverClient, err := chatkitServerGo.NewClient(instanceLocator, key)
+	serverClient, err := chatkit.NewClient(instanceLocator, key)
 	handleErr("Instatiating Client", err)
 
 	log.Println("Creating User")
-	newUser := chatkitServerGo.User{
+	newUser := chatkit.User{
 		Name: "testUser",
 		ID:   "testUser",
 	}
@@ -32,7 +34,7 @@ func main() {
 	}
 
 	log.Println("Creating New Role")
-	newRole := chatkitServerGo.Role{
+	newRole := chatkit.Role{
 		Name:        "testRole",
 		Permissions: []string{"room:join", "room:leave", "message:create", "room:delete"},
 		Scope:       "global",
@@ -48,7 +50,7 @@ func main() {
 	}
 
 	log.Println("Assigning New Role To User")
-	err = serverClient.UpdateUserRole("testUser", chatkitServerGo.UserRole{
+	err = serverClient.UpdateUserRole("testUser", chatkit.UserRole{
 		Name: "testRole",
 	})
 	handleErr("Assigning New Role To User", err)
