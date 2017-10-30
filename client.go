@@ -151,7 +151,7 @@ func buildServiceEndpoint(host string, service string, apiVersion string, appID 
 func getinstanceLocatorComponents(instanceLocator string) (apiVersion string, host string, appID string, err error) {
 	components, err := getColonSeperatedComponents(instanceLocator, 3)
 	if err != nil {
-		return "", "", "", errors.New("Incorrect instanceLocator format give, please get your app instanceLocator from your user dashboard")
+		return "", "", "", errors.New("Incorrect instanceLocator format given, please get your app instanceLocator from your user dashboard")
 	}
 	return components[0], components[1], components[2], nil
 }
@@ -159,7 +159,7 @@ func getinstanceLocatorComponents(instanceLocator string) (apiVersion string, ho
 func getKeyComponents(key string) (keyID string, keySecret string, err error) {
 	components, err := getColonSeperatedComponents(key, 2)
 	if err != nil {
-		return "", "", errors.New("Incorrect key format give, please get your app key from your user dashboard")
+		return "", "", errors.New("Incorrect key format given, please get your app key from your user dashboard")
 	}
 	return components[0], components[1], nil
 }

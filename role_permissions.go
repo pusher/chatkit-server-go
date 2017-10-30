@@ -27,10 +27,10 @@ func (csc *client) GetRolePermissions(roleName string, scopeName string) (*RoleP
 		return nil, err
 	}
 
-	stringSlice := &[]string{}
-	err = csc.do(req, stringSlice)
+	stringSlice := []string{}
+	err = csc.do(req, &stringSlice)
 
-	return &RolePermissions{*stringSlice}, err
+	return &RolePermissions{stringSlice}, err
 }
 
 func (csc *client) EditRolePermissions(roleName string, scopeName string, rolePerms RolePermissions) error {
