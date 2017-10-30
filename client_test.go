@@ -11,7 +11,7 @@ import (
 func TestBuildServiceEndpoint(t *testing.T) {
 	endpoint := buildServiceEndpoint("host", chatkitAuthService, "v1", "abc123")
 
-	assert.Equal(t, "https://host/services/chatkit_authorizer/v1/abc123", endpoint, "Should return a correctly fomatted endpoint")
+	assert.Equal(t, "https://host.pusherplatform.io/services/chatkit_authorizer/v1/abc123", endpoint, "Should return a correctly fomatted endpoint")
 }
 
 func TestNewRequest(t *testing.T) {
