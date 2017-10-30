@@ -1,4 +1,4 @@
-package chatkitServerGo
+package chatkit
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ type RolePermissions struct {
 	Permissions []string `json:"permissions"` // (array| required): The permissions that you want to attach to the specified role (at the specified scope).
 }
 
-func (csc *chatkitServerClient) CreateRolePermissions(roleName string, scopeName string, rolePerms RolePermissions) error {
+func (csc *client) CreateRolePermissions(roleName string, scopeName string, rolePerms RolePermissions) error {
 	path := fmt.Sprint("/roles/", roleName, "/scope/", scopeName, "/permissions")
 	req, err := csc.newRequest(http.MethodPost, chatkitAuthService, path, rolePerms)
 	if err != nil {
@@ -20,20 +20,20 @@ func (csc *chatkitServerClient) CreateRolePermissions(roleName string, scopeName
 	return csc.do(req, nil)
 }
 
-func (csc *chatkitServerClient) GetRolePermissions(roleName string, scopeName string) (*RolePermissions, error) {
+func (csc *client) GetRolePermissions(roleName string, scopeName string) (*RolePermissions, error) {
 	path := fmt.Sprint("/roles/", roleName, "/scope/", scopeName, "/permissions")
 	req, err := csc.newRequest(http.MethodGet, chatkitAuthService, path, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	stringSlice := &[]string{}
-	err = csc.do(req, stringSlice)
+	stringSlice := []string{}
+	err = csc.do(req, &stringSlice)
 
-	return &RolePermissions{*stringSlice}, err
+	return &RolePermissions{stringSlice}, err
 }
 
-func (csc *chatkitServerClient) EditRolePermissions(roleName string, scopeName string, rolePerms RolePermissions) error {
+func (csc *client) EditRolePermissions(roleName string, scopeName string, rolePerms RolePermissions) error {
 	path := fmt.Sprint("/roles/", roleName, "/scope/", scopeName, "/permissions")
 	req, err := csc.newRequest(http.MethodPut, chatkitAuthService, path, rolePerms)
 	if err != nil {

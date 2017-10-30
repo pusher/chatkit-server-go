@@ -1,4 +1,4 @@
-package chatkitServerGo
+package chatkit
 
 import (
 	"net/http"
@@ -23,14 +23,14 @@ func TestNewRequest(t *testing.T) {
 	}
 	tests := []struct {
 		name          string
-		client        *chatkitServerClient
+		client        *client
 		args          args
 		expectRequest bool
 		expectErr     bool
 	}{
 		{
 			name: "valid with body AUTH",
-			client: &chatkitServerClient{
+			client: &client{
 				authEndpoint: "https://host/services/chatkit_authorizer/v1/abc123",
 				tokenManager: newMockTokenManager(),
 			},
@@ -45,7 +45,7 @@ func TestNewRequest(t *testing.T) {
 		},
 		{
 			name: "valid without body AUTH",
-			client: &chatkitServerClient{
+			client: &client{
 				authEndpoint: "https://host/services/chatkit_authorizer/v1/abc123",
 				tokenManager: newMockTokenManager(),
 			},
@@ -60,7 +60,7 @@ func TestNewRequest(t *testing.T) {
 		},
 		{
 			name: "valid without body SERVER",
-			client: &chatkitServerClient{
+			client: &client{
 				serverEndpoint: "https://host/services/chatkit/v1/abc123",
 				tokenManager:   newMockTokenManager(),
 			},
@@ -75,7 +75,7 @@ func TestNewRequest(t *testing.T) {
 		},
 		{
 			name: "invalid no service",
-			client: &chatkitServerClient{
+			client: &client{
 				serverEndpoint: "https://host/services/chatkit/v1/abc123",
 				tokenManager:   newMockTokenManager(),
 			},
@@ -98,10 +98,10 @@ func TestNewRequest(t *testing.T) {
 	}
 }
 
-func newTestClientAndServer(handler http.Handler) (*chatkitServerClient, *httptest.Server) {
+func newTestClientAndServer(handler http.Handler) (*client, *httptest.Server) {
 	testServer := httptest.NewServer(handler)
 
-	testClient := &chatkitServerClient{
+	testClient := &client{
 		Client:         http.Client{},
 		authEndpoint:   testServer.URL,
 		serverEndpoint: testServer.URL,

@@ -1,4 +1,4 @@
-package chatkitServerGo
+package chatkit
 
 import (
 	"errors"
@@ -12,7 +12,7 @@ type UserRole struct {
 	RoomID int    `json:"room_id,omitempty"` // (integer| optional): The ID of the room you want to create the user role for.
 }
 
-func (csc *chatkitServerClient) GetUserRoles(userID string) ([]Role, error) {
+func (csc *client) GetUserRoles(userID string) ([]Role, error) {
 	if userID == "" {
 		return nil, errors.New("User ID cannot be an empty string")
 	}
@@ -29,7 +29,7 @@ func (csc *chatkitServerClient) GetUserRoles(userID string) ([]Role, error) {
 	return *roles, err
 }
 
-func (csc *chatkitServerClient) CreateUserRole(userID string, userRole UserRole) error {
+func (csc *client) CreateUserRole(userID string, userRole UserRole) error {
 	path := fmt.Sprint("/users/", userID, "/roles")
 	req, err := csc.newRequest(http.MethodPost, chatkitAuthService, path, userRole)
 	if err != nil {
@@ -39,7 +39,7 @@ func (csc *chatkitServerClient) CreateUserRole(userID string, userRole UserRole)
 	return csc.do(req, nil)
 }
 
-func (csc *chatkitServerClient) UpdateUserRole(userID string, userRole UserRole) error {
+func (csc *client) UpdateUserRole(userID string, userRole UserRole) error {
 	path := fmt.Sprint("/users/", userID, "/roles")
 	req, err := csc.newRequest(http.MethodPut, chatkitAuthService, path, userRole)
 	if err != nil {
@@ -49,7 +49,7 @@ func (csc *chatkitServerClient) UpdateUserRole(userID string, userRole UserRole)
 	return csc.do(req, nil)
 }
 
-func (csc *chatkitServerClient) DeleteUserRole(userID string, roomID *string) error {
+func (csc *client) DeleteUserRole(userID string, roomID *string) error {
 	path := fmt.Sprint("/users/", userID, "/roles")
 	if roomID != nil {
 		path = path + "?room_id=" + *roomID
