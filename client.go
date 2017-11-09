@@ -49,6 +49,7 @@ type Client interface {
 	// Chatkit User methods
 	CreateUser(user User) error
 	DeleteUser(userID string) error
+	GetUsers() ([]User, error)
 }
 
 // NewClient returns an instantiated instance that fulfils the Client interface
