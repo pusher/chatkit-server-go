@@ -1,6 +1,8 @@
 package chatkit
 
-import "net/http"
+import (
+	"net/http"
+)
 
 // User is a type used by the CreateUser method to define a new user
 type User struct {
@@ -28,4 +30,20 @@ func (csc *client) DeleteUser(userID string) error {
 	}
 
 	return csc.do(req, nil)
+}
+
+func (csc *client) GetUsers() ([]User, error) {
+	path := "/users"
+	req, err := csc.newRequest(http.MethodGet, chatkitService, path, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var users []User
+
+	err = csc.do(req, &users)
+	if err != nil {
+		return nil, err
+	}
+	return users, nil
 }
