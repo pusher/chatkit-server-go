@@ -54,26 +54,28 @@ func TestGetRolePermissionsSuccess(t *testing.T) {
 	assert.NotEmpty(t, rolePerms.Permissions, "Should be empty")
 }
 
-func TestEditRolePermissionsFail(t *testing.T) {
+func TestUpdateRolePermissionsFail(t *testing.T) {
 	testClient, testServer := newTestClientAndServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(400)
 	}))
 	defer testServer.Close()
 
-	err := testClient.EditRolePermissions("testRole", "testScope", RolePermissions{
+	err := testClient.UpdateRolePermissions("testRole", "testScope", UpdateRolePermissionsParams{
 		[]string{"testPermission"},
+		[]string{"perm"},
 	})
 	assert.Error(t, err, "expected an error")
 }
 
-func TestEditRolePermissionsSuccess(t *testing.T) {
+func TestUpdateRolePermissionsSuccess(t *testing.T) {
 	testClient, testServer := newTestClientAndServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
 	}))
 	defer testServer.Close()
 
-	err := testClient.EditRolePermissions("testRole", "testScope", RolePermissions{
+	err := testClient.UpdateRolePermissions("testRole", "testScope", UpdateRolePermissionsParams{
 		[]string{"testPermission"},
+		nil,
 	})
 	assert.NoError(t, err, "expected an error")
 }

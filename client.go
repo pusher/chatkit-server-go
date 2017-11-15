@@ -44,7 +44,7 @@ type Client interface {
 
 	CreateRolePermissions(roleName string, scopeName string, rolePerms RolePermissions) error
 	GetRolePermissions(roleName string, scopeName string) (*RolePermissions, error)
-	EditRolePermissions(roleName string, scopeName string, rolePerms RolePermissions) error
+	UpdateRolePermissions(roleName string, scopeName string, params UpdateRolePermissionsParams) error
 
 	// Chatkit User methods
 	CreateUser(user User) error
