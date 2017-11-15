@@ -8,10 +8,13 @@ import (
 )
 
 // NewChatkitSUToken produces a new jwt su token that will be compatible with Chatkit
-func NewChatkitSUToken(appID string, keyID string, keySecret string, expiryDuration time.Duration) (tokenString string, expiry time.Time, err error) {
+func NewChatkitSUToken(appID string, keyID string, keySecret string, userID *string, expiryDuration time.Duration) (tokenString string, expiry time.Time, err error) {
 	jwtClaims, tokenExpiry := getGenericTokenClaims(appID, keyID, expiryDuration)
 
 	jwtClaims["su"] = true
+	if userID != nil {
+		jwtClaims["sub"] = userID
+	}
 
 	tokenString, err = signToken(keySecret, jwtClaims)
 	return tokenString, tokenExpiry, err
@@ -83,7 +86,7 @@ func (stm *suTokenManager) getToken() (string, error) {
 	defer stm.mutex.Unlock()
 
 	if time.Now().After(stm.tokenExpiry) {
-		tokenString, tokenExpiry, err := NewChatkitSUToken(stm.appID, stm.keyID, stm.keySecret, time.Hour*24)
+		tokenString, tokenExpiry, err := NewChatkitSUToken(stm.appID, stm.keyID, stm.keySecret, nil, time.Hour*24)
 		if err != nil {
 			return "", err
 		}
