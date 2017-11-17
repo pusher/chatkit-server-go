@@ -44,7 +44,7 @@ func NewChatkitSUToken(appID string, keyID string, keySecret string, expiryDurat
 
 ## Installation
 
-    $ go get pusher/chatkit-server-go
+    $ go get github.com/pusher/chatkit-server-go
 
 ## Getting Started
 
