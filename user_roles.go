@@ -31,7 +31,12 @@ func (csc *client) GetUserRoles(userID string) ([]Role, error) {
 
 func (csc *client) CreateUserRole(userID string, userRole UserRole) error {
 	path := fmt.Sprint("/users/", userID, "/roles")
-	req, err := csc.newRequest(http.MethodPost, chatkitAuthService, path, userRole)
+	req, err := csc.newRequest(
+		http.MethodPut,
+		chatkitAuthService,
+		path,
+		userRole,
+	)
 	if err != nil {
 		return err
 	}

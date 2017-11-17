@@ -14,7 +14,12 @@ type Role struct {
 }
 
 func (csc *client) CreateRole(role Role) error {
-	req, err := csc.newRequest(http.MethodPost, chatkitAuthService, "/roles", role)
+	req, err := csc.newRequest(
+		http.MethodPut,
+		chatkitAuthService,
+		"/roles",
+		role,
+	)
 	if err != nil {
 		return err
 	}

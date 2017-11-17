@@ -42,7 +42,6 @@ type Client interface {
 	UpdateUserRole(userID string, userRole UserRole) error
 	DeleteUserRole(userID string, roomID *string) error
 
-	CreateRolePermissions(roleName string, scopeName string, rolePerms RolePermissions) error
 	GetRolePermissions(roleName string, scopeName string) (*RolePermissions, error)
 	UpdateRolePermissions(roleName string, scopeName string, params UpdateRolePermissionsParams) error
 
