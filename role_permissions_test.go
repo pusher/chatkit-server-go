@@ -8,30 +8,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCreateRolePermissionsSuccess(t *testing.T) {
-	testClient, testServer := newTestClientAndServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(200)
-	}))
-	defer testServer.Close()
-
-	err := testClient.CreateRolePermissions("testRole", "testScope", RolePermissions{
-		[]string{"testPermission"},
-	})
-	assert.Nil(t, err, "expected no error")
-}
-
-func TestCreateRolePermissionsFail(t *testing.T) {
-	testClient, testServer := newTestClientAndServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(400)
-	}))
-	defer testServer.Close()
-
-	err := testClient.CreateRolePermissions("testRole", "testScope", RolePermissions{
-		[]string{"testPermission"},
-	})
-	assert.Error(t, err, "expected an error")
-}
-
 func TestGetRolePermissionsFail(t *testing.T) {
 	testClient, testServer := newTestClientAndServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(400)

@@ -47,52 +47,26 @@ func TestGetUserRolesInvalidInput(t *testing.T) {
 	assert.Error(t, err, "expected error")
 }
 
-func TestCreateUserRolesSuccess(t *testing.T) {
+func TestSetUserRolesSuccess(t *testing.T) {
 	testClient, testServer := newTestClientAndServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
 	}))
 	defer testServer.Close()
 
-	err := testClient.CreateUserRole("testUserID", UserRole{
+	err := testClient.SetUserRole("testUserID", UserRole{
 		Name:   "testName",
 		RoomID: 123,
 	})
 	assert.Nil(t, err, "expected no error")
 }
 
-func TestCreateUserRolesFail(t *testing.T) {
+func TestSetUserRolesFail(t *testing.T) {
 	testClient, testServer := newTestClientAndServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(400)
 	}))
 	defer testServer.Close()
 
-	err := testClient.CreateUserRole("testUserID", UserRole{
-		Name:   "testName",
-		RoomID: 123,
-	})
-	assert.NotNil(t, err, "expected no error")
-}
-
-func TestUpdateUserRolesSuccess(t *testing.T) {
-	testClient, testServer := newTestClientAndServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(200)
-	}))
-	defer testServer.Close()
-
-	err := testClient.UpdateUserRole("testUserID", UserRole{
-		Name:   "testName",
-		RoomID: 123,
-	})
-	assert.Nil(t, err, "expected no error")
-}
-
-func TestUpdateUserRolesFail(t *testing.T) {
-	testClient, testServer := newTestClientAndServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(400)
-	}))
-	defer testServer.Close()
-
-	err := testClient.UpdateUserRole("testUserID", UserRole{
+	err := testClient.SetUserRole("testUserID", UserRole{
 		Name:   "testName",
 		RoomID: 123,
 	})

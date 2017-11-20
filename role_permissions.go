@@ -15,16 +15,6 @@ type UpdateRolePermissionsParams struct {
 	RemovePermissions []string `json:"remove_permissions,omitempty"`
 }
 
-func (csc *client) CreateRolePermissions(roleName string, scopeName string, rolePerms RolePermissions) error {
-	path := fmt.Sprint("/roles/", roleName, "/scope/", scopeName, "/permissions")
-	req, err := csc.newRequest(http.MethodPost, chatkitAuthService, path, rolePerms)
-	if err != nil {
-		return err
-	}
-
-	return csc.do(req, nil)
-}
-
 func (csc *client) GetRolePermissions(roleName string, scopeName string) (*RolePermissions, error) {
 	path := fmt.Sprint("/roles/", roleName, "/scope/", scopeName, "/permissions")
 	req, err := csc.newRequest(http.MethodGet, chatkitAuthService, path, nil)

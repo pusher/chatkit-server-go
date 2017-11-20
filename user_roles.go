@@ -29,19 +29,14 @@ func (csc *client) GetUserRoles(userID string) ([]Role, error) {
 	return *roles, err
 }
 
-func (csc *client) CreateUserRole(userID string, userRole UserRole) error {
+func (csc *client) SetUserRole(userID string, userRole UserRole) error {
 	path := fmt.Sprint("/users/", userID, "/roles")
-	req, err := csc.newRequest(http.MethodPost, chatkitAuthService, path, userRole)
-	if err != nil {
-		return err
-	}
-
-	return csc.do(req, nil)
-}
-
-func (csc *client) UpdateUserRole(userID string, userRole UserRole) error {
-	path := fmt.Sprint("/users/", userID, "/roles")
-	req, err := csc.newRequest(http.MethodPut, chatkitAuthService, path, userRole)
+	req, err := csc.newRequest(
+		http.MethodPut,
+		chatkitAuthService,
+		path,
+		userRole,
+	)
 	if err != nil {
 		return err
 	}
