@@ -52,7 +52,9 @@ type Client interface {
 
 // NewClient returns an instantiated instance that fulfils the Client interface
 func NewClient(instanceLocator string, key string) (Client, error) {
-	apiVersion, host, appID, err := getinstanceLocatorComponents(instanceLocator)
+	apiVersion, host, instanceID, err := getinstanceLocatorComponents(
+		instanceLocator,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -62,9 +64,9 @@ func NewClient(instanceLocator string, key string) (Client, error) {
 		return nil, err
 	}
 
-	tokenManager := newTokenManager(appID, keyID, keySecret)
+	tokenManager := newTokenManager(instanceID, keyID, keySecret)
 
-	return newClient(host, apiVersion, appID, tokenManager), nil
+	return newClient(host, apiVersion, instanceID, tokenManager), nil
 }
 
 type client struct {
@@ -76,12 +78,27 @@ type client struct {
 	serverEndpoint string
 }
 
-func newClient(host string, apiVersion string, appID string, tokenManager tokenManager) *client {
+func newClient(
+	host string,
+	apiVersion string,
+	instanceID string,
+	tokenManager tokenManager,
+) *client {
 	return &client{
-		Client:         http.Client{},
-		authEndpoint:   buildServiceEndpoint(host, chatkitAuthService, apiVersion, appID),
-		serverEndpoint: buildServiceEndpoint(host, chatkitService, apiVersion, appID),
-		tokenManager:   tokenManager,
+		Client: http.Client{},
+		authEndpoint: buildServiceEndpoint(
+			host,
+			chatkitAuthService,
+			apiVersion,
+			instanceID,
+		),
+		serverEndpoint: buildServiceEndpoint(
+			host,
+			chatkitService,
+			apiVersion,
+			instanceID,
+		),
+		tokenManager: tokenManager,
 	}
 }
 
@@ -143,14 +160,32 @@ func (csc *client) do(req *http.Request, responseBody interface{}) error {
 	return nil
 }
 
-func buildServiceEndpoint(host string, service string, apiVersion string, appID string) string {
-	return fmt.Sprint("https://", host, ".pusherplatform.io/services/", service, "/", apiVersion, "/", appID)
+func buildServiceEndpoint(
+	host string,
+	service string,
+	apiVersion string,
+	instanceID string,
+) string {
+	return fmt.Sprint(
+		"https://",
+		host,
+		".pusherplatform.io/services/",
+		service,
+		"/",
+		apiVersion,
+		"/",
+		instanceID,
+	)
 }
 
-func getinstanceLocatorComponents(instanceLocator string) (apiVersion string, host string, appID string, err error) {
+func getinstanceLocatorComponents(
+	instanceLocator string,
+) (apiVersion string, host string, instanceID string, err error) {
 	components, err := getColonSeperatedComponents(instanceLocator, 3)
 	if err != nil {
-		return "", "", "", errors.New("Incorrect instanceLocator format given, please get your app instanceLocator from your user dashboard")
+		return "", "", "", errors.New(
+			"Incorrect instanceLocator format given, please get your instanceLocator from your user dashboard",
+		)
 	}
 	return components[0], components[1], components[2], nil
 }
@@ -158,7 +193,9 @@ func getinstanceLocatorComponents(instanceLocator string) (apiVersion string, ho
 func getKeyComponents(key string) (keyID string, keySecret string, err error) {
 	components, err := getColonSeperatedComponents(key, 2)
 	if err != nil {
-		return "", "", errors.New("Incorrect key format given, please get your app key from your user dashboard")
+		return "", "", errors.New(
+			"Incorrect key format given, please get your key from your user dashboard",
+		)
 	}
 	return components[0], components[1], nil
 }
