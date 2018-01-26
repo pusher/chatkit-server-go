@@ -38,8 +38,8 @@ type Client interface {
 func NewClient(instanceLocator string, key string) (Client, error)
 
 // NewChatkitUserToken and NewChatkitSUToken are Chatkit JWT token generation helper functions
-func NewChatkitUserToken(appID string, keyID string, keySecret string, userID string, expiryDuration time.Duration) (tokenString string, expiry time.Time, err error)
-func NewChatkitSUToken(appID string, keyID string, keySecret string, expiryDuration time.Duration) (tokenString string, expiry time.Time, err error)
+func NewChatkitUserToken(instanceID string, keyID string, keySecret string, userID string, expiryDuration time.Duration) (tokenString string, expiry time.Time, err error)
+func NewChatkitSUToken(instanceID string, keyID string, keySecret string, expiryDuration time.Duration) (tokenString string, expiry time.Time, err error)
 ```
 
 ## Installation

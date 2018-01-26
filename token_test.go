@@ -10,7 +10,7 @@ import (
 )
 
 func TestNewChatkitSUTokenNoSub(t *testing.T) {
-	token, expiry, err := NewChatkitSUToken("appID", "keyID", "keySecret", nil, time.Hour)
+	token, expiry, err := NewChatkitSUToken("instanceID", "keyID", "keySecret", nil, time.Hour)
 	assert.NoError(t, err, "expect no error")
 
 	assert.False(t, time.Now().After(expiry), "expiry should be after now")
@@ -39,7 +39,7 @@ func TestNewChatkitSUTokenNoSub(t *testing.T) {
 
 func TestNewChatkitSUTokenWithSub(t *testing.T) {
 	sub := "jane"
-	token, expiry, err := NewChatkitSUToken("appID", "keyID", "keySecret", &sub, time.Hour)
+	token, expiry, err := NewChatkitSUToken("instanceID", "keyID", "keySecret", &sub, time.Hour)
 	assert.NoError(t, err, "expect no error")
 
 	assert.False(t, time.Now().After(expiry), "expiry should be after now")
@@ -66,7 +66,7 @@ func TestNewChatkitSUTokenWithSub(t *testing.T) {
 }
 
 func TestNewChatkitUserToken(t *testing.T) {
-	token, expiry, err := NewChatkitUserToken("appID", "keyID", "keySecret", "bob", time.Hour)
+	token, expiry, err := NewChatkitUserToken("instanceID", "keyID", "keySecret", "bob", time.Hour)
 	assert.NoError(t, err, "expect no error")
 
 	assert.False(t, time.Now().After(expiry), "expiry should be after now")
