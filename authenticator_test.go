@@ -9,10 +9,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewChatkitSUTokenNoSub(t *testing.T) {
-	token, expiry, err := NewChatkitSUToken("instanceID", "keyID", "keySecret", nil, time.Hour)
-	assert.NoError(t, err, "expect no error")
+func TestNewChatkitTokenWithSuAndNoSub(t *testing.T) {
+	tokenBody, errorBody := NewChatkitToken("instanceID", "keyID", "keySecret", nil, true, time.Hour)
+	assert.Nil(t, errorBody, "expect no error")
 
+	token := tokenBody.AccessToken
+	expiry := time.Now().Add(time.Duration(int(tokenBody.ExpiresIn)) * time.Second)
 	assert.False(t, time.Now().After(expiry), "expiry should be after now")
 
 	parsedToken, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
@@ -37,11 +39,13 @@ func TestNewChatkitSUTokenNoSub(t *testing.T) {
 	assert.False(t, present, "sub claim should not be present")
 }
 
-func TestNewChatkitSUTokenWithSub(t *testing.T) {
+func TestNewChatkitTokenWithSubAndSu(t *testing.T) {
 	sub := "jane"
-	token, expiry, err := NewChatkitSUToken("instanceID", "keyID", "keySecret", &sub, time.Hour)
-	assert.NoError(t, err, "expect no error")
+	tokenBody, errorBody := NewChatkitToken("instanceID", "keyID", "keySecret", &sub, true, time.Hour)
+	assert.Nil(t, errorBody, "expect no error")
 
+	token := tokenBody.AccessToken
+	expiry := time.Now().Add(time.Duration(int(tokenBody.ExpiresIn)) * time.Second)
 	assert.False(t, time.Now().After(expiry), "expiry should be after now")
 
 	parsedToken, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
@@ -65,10 +69,13 @@ func TestNewChatkitSUTokenWithSub(t *testing.T) {
 	assert.Equal(t, sub, claimMap["sub"], "token did not contain a sub claim with supplied user name")
 }
 
-func TestNewChatkitUserToken(t *testing.T) {
-	token, expiry, err := NewChatkitUserToken("instanceID", "keyID", "keySecret", "bob", time.Hour)
-	assert.NoError(t, err, "expect no error")
+func TestNewChatkitTokenWithSub(t *testing.T) {
+	userID := "bob"
+	tokenBody, errorBody := NewChatkitToken("instanceID", "keyID", "keySecret", &userID, false, time.Hour)
+	assert.Nil(t, errorBody, "expect no error")
 
+	token := tokenBody.AccessToken
+	expiry := time.Now().Add(time.Duration(int(tokenBody.ExpiresIn)) * time.Second)
 	assert.False(t, time.Now().After(expiry), "expiry should be after now")
 
 	parsedToken, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
@@ -85,9 +92,9 @@ func TestNewChatkitUserToken(t *testing.T) {
 	assert.True(t, parsedToken.Valid, "token produced was invalid")
 }
 
-func TestTokenManagerGetTokenNew(t *testing.T) {
-	tokenManager := newTokenManager("testApp", "keyID", "keySecret")
-	token, err := tokenManager.getToken()
+func TestAuthenticatorGetTokenNew(t *testing.T) {
+	authenticator := newAuthenticator("testApp", "keyID", "keySecret")
+	token, err := authenticator.getSUToken()
 	assert.NoError(t, err, "expect no error")
 
 	parsedToken, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
@@ -104,21 +111,35 @@ func TestTokenManagerGetTokenNew(t *testing.T) {
 	assert.True(t, parsedToken.Valid, "token produced was invalid")
 }
 
-func TestTokenManagerGetTokenNotExpired(t *testing.T) {
-	tokenManager := newTokenManager("testApp", "keyID", "keySecret")
-	firstToken, err := tokenManager.getToken()
+func TestAuthenticatorGetTokenNotExpired(t *testing.T) {
+	authenticator := newAuthenticator("testApp", "keyID", "keySecret")
+	firstToken, err := authenticator.getSUToken()
 	assert.NoError(t, err, "expect no error")
 
-	secondToken, err := tokenManager.getToken()
+	secondToken, err := authenticator.getSUToken()
 	assert.NoError(t, err, "expect no error")
 
 	assert.Equal(t, firstToken, secondToken, "don't expect tokens to be regenerated if not expired")
 }
 
-func newMockTokenManager() tokenManager {
-	return &mockTokenManager{}
+func newMockAuthenticator() Authenticator {
+	return &mockAuthenticator{}
 }
 
-type mockTokenManager struct{}
+type mockAuthenticator struct{}
 
-func (mtm *mockTokenManager) getToken() (string, error) { return "", nil }
+func (ma *mockAuthenticator) getSUToken() (string, error) {
+	return "", nil
+}
+
+func (ma *mockAuthenticator) authenticate(string) AuthenticationResponse {
+	return AuthenticationResponse{
+		Status:  200,
+		Headers: map[string]string{},
+		Body: TokenBody{
+			AccessToken: "",
+			TokenType:   "",
+			ExpiresIn:   0,
+		},
+	}
+}
