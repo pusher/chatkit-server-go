@@ -7,13 +7,14 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 )
 
-// Role is a type used by the role methods to define a role
+// AuthenticationResponse contains the authentication response
 type AuthenticationResponse struct {
-	Status  int               `json:"status"`  // (int| required): Suggested response HTTP status code.
-	Headers map[string]string `json:"headers"` // (headers| required): Suggested response headers.
-	Body    interface{}       `json:"body"`    // (interface| required): Suggested response body.
+	Status  int               `json:"status"`
+	Headers map[string]string `json:"headers"`
+	Body    interface{}       `json:"body"`
 }
 
+// ErrorBody contains error information on an authentication error response
 type ErrorBody struct {
 	ErrorType        string `json:"error"`
 	ErrorDescription string `json:"error_description,omitempty"`
@@ -24,12 +25,14 @@ func (e *ErrorBody) Error() string {
 	return e.ErrorDescription
 }
 
-type TokenBody struct {
+// Token contains a returned auth token with its type and expiry in seconds
+type Token struct {
 	AccessToken string  `json:"access_token"`
 	TokenType   string  `json:"token_type"`
 	ExpiresIn   float64 `json:"expires_in"`
 }
 
+// NewChatkitToken is a Chatkit JWT token generation helper function
 func NewChatkitToken(
 	instanceID string,
 	keyID string,
@@ -37,7 +40,7 @@ func NewChatkitToken(
 	userID *string,
 	su bool,
 	expiryDuration time.Duration,
-) (tokenBody *TokenBody, errBody *ErrorBody) {
+) (Token, error) {
 	jwtClaims := getGenericTokenClaims(
 		instanceID,
 		keyID,
@@ -52,18 +55,14 @@ func NewChatkitToken(
 	tokenString, err := signToken(keySecret, jwtClaims)
 
 	if err != nil {
-		return nil, &ErrorBody{
-			ErrorType:        "token_provider/token_signing_failure",
-			ErrorDescription: "There was an error signing the token",
-		}
+		return Token{}, err
 	}
 
-	return &TokenBody{
-			AccessToken: tokenString,
-			TokenType:   "bearer",
-			ExpiresIn:   expiryDuration.Seconds(),
-		},
-		nil
+	return Token{
+		AccessToken: tokenString,
+		TokenType:   "bearer",
+		ExpiresIn:   expiryDuration.Seconds(),
+	}, nil
 }
 
 func getGenericTokenClaims(
@@ -131,7 +130,7 @@ func newAuthenticator(
 }
 
 func (auth *authenticator) authenticate(userID string) AuthenticationResponse {
-	tokenBody, errorBody := NewChatkitToken(
+	token, err := NewChatkitToken(
 		auth.instanceID,
 		auth.keyID,
 		auth.keySecret,
@@ -140,18 +139,21 @@ func (auth *authenticator) authenticate(userID string) AuthenticationResponse {
 		time.Hour*24,
 	)
 
-	if errorBody != nil {
+	if err != nil {
 		return AuthenticationResponse{
 			Status:  500,
 			Headers: map[string]string{},
-			Body:    errorBody,
+			Body: &ErrorBody{
+				ErrorType:        "token_provider/token_signing_failure",
+				ErrorDescription: "There was an error signing the token",
+			},
 		}
 	}
 
 	return AuthenticationResponse{
 		Status:  200,
 		Headers: map[string]string{},
-		Body:    tokenBody,
+		Body:    token,
 	}
 }
 

@@ -41,7 +41,14 @@ type Client interface {
 func NewClient(instanceLocator string, key string) (Client, error)
 
 // NewChatkitToken is a Chatkit JWT token generation helper function
-func NewChatkitToken(instanceID string, keyID string, keySecret string, userID *string, su bool, expiryDuration time.Duration) (tokenBody *TokenBody, errorBody *ErrorBody)
+func NewChatkitToken(instanceID string, keyID string, keySecret string, userID *string, su bool, expiryDuration time.Duration) (Token, error)
+
+// Token contains a returned auth token with its type and expiry in seconds
+type Token struct {
+	AccessToken string  `json:"access_token"`
+	TokenType   string  `json:"token_type"`
+	ExpiresIn   float64 `json:"expires_in"`
+}
 ```
 
 ## Installation

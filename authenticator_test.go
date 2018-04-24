@@ -136,7 +136,7 @@ func (ma *mockAuthenticator) authenticate(string) AuthenticationResponse {
 	return AuthenticationResponse{
 		Status:  200,
 		Headers: map[string]string{},
-		Body: TokenBody{
+		Body: Token{
 			AccessToken: "",
 			TokenType:   "",
 			ExpiresIn:   0,

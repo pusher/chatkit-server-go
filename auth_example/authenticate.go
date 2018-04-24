@@ -15,15 +15,11 @@ func main() {
 	}
 
 	serverClient, err := chatkit.NewClient(instanceLocator, key)
-	handleErr("Instantiating Client", err)
+	if err != nil {
+		log.Fatalf("Error instantiating client: %s", err.Error())
+	}
 
 	log.Println("Authenticating")
 	authRes := serverClient.Authenticate("ham")
 	log.Println(authRes.Status, authRes.Headers, authRes.Body)
-}
-
-func handleErr(descrip string, err error) {
-	if err != nil {
-		log.Fatalln("Error ", descrip, err)
-	}
 }
