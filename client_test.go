@@ -31,8 +31,8 @@ func TestNewRequest(t *testing.T) {
 		{
 			name: "valid with body AUTH",
 			client: &client{
-				authEndpoint: "https://host/services/chatkit_authorizer/v1/abc123",
-				tokenManager: newMockTokenManager(),
+				authEndpoint:  "https://host/services/chatkit_authorizer/v1/abc123",
+				authenticator: newMockAuthenticator(),
 			},
 			args: args{
 				method:  "GET",
@@ -46,8 +46,8 @@ func TestNewRequest(t *testing.T) {
 		{
 			name: "valid without body AUTH",
 			client: &client{
-				authEndpoint: "https://host/services/chatkit_authorizer/v1/abc123",
-				tokenManager: newMockTokenManager(),
+				authEndpoint:  "https://host/services/chatkit_authorizer/v1/abc123",
+				authenticator: newMockAuthenticator(),
 			},
 			args: args{
 				method:  "GET",
@@ -62,7 +62,7 @@ func TestNewRequest(t *testing.T) {
 			name: "valid without body SERVER",
 			client: &client{
 				serverEndpoint: "https://host/services/chatkit/v1/abc123",
-				tokenManager:   newMockTokenManager(),
+				authenticator:  newMockAuthenticator(),
 			},
 			args: args{
 				method:  "GET",
@@ -77,7 +77,7 @@ func TestNewRequest(t *testing.T) {
 			name: "invalid no service",
 			client: &client{
 				serverEndpoint: "https://host/services/chatkit/v1/abc123",
-				tokenManager:   newMockTokenManager(),
+				authenticator:  newMockAuthenticator(),
 			},
 			args: args{
 				method:  "GET",
@@ -105,7 +105,7 @@ func newTestClientAndServer(handler http.Handler) (*client, *httptest.Server) {
 		Client:         http.Client{},
 		authEndpoint:   testServer.URL,
 		serverEndpoint: testServer.URL,
-		tokenManager:   newMockTokenManager(),
+		authenticator:  newMockAuthenticator(),
 	}
 
 	return testClient, testServer

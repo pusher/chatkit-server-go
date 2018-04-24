@@ -10,6 +10,7 @@ type RolePermissions struct {
 	Permissions []string `json:"permissions"` // (array| required): The permissions that you want to attach to the specified role (at the specified scope).
 }
 
+// UpdateRolePermissionsParams is a type used to update role permissions
 type UpdateRolePermissionsParams struct {
 	AddPermissions    []string `json:"add_permissions,omitempty"`
 	RemovePermissions []string `json:"remove_permissions,omitempty"`

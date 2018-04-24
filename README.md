@@ -7,13 +7,16 @@ interacting with roles and permissions of those users. It also contains some hel
 functions for creating your own JWT tokens for authentication with the Chatkit
 service.
 
-Please report any bugs or feature requests via a Github issue on this repo.
+Please report any bugs or feature requests via a GitHub issue on this repo.
 
 ## Interface
 
 ```go
 // Client is the public interface of the Chatkit Server Client
 type Client interface {
+    // Authentication method
+    Authenticate(userID string) AuthenticationResponse
+
     // Chatkit Roles and Permissions methods
     GetRoles() ([]Role, error)
     CreateRole(Role) error
@@ -34,12 +37,18 @@ type Client interface {
     GetUsers() ([]User, error)
 }
 
-// NewClient instantiates a new Client instance 
+// NewClient instantiates a new Client instance
 func NewClient(instanceLocator string, key string) (Client, error)
 
-// NewChatkitUserToken and NewChatkitSUToken are Chatkit JWT token generation helper functions
-func NewChatkitUserToken(instanceID string, keyID string, keySecret string, userID string, expiryDuration time.Duration) (tokenString string, expiry time.Time, err error)
-func NewChatkitSUToken(instanceID string, keyID string, keySecret string, expiryDuration time.Duration) (tokenString string, expiry time.Time, err error)
+// NewChatkitToken is a Chatkit JWT token generation helper function
+func NewChatkitToken(instanceID string, keyID string, keySecret string, userID *string, su bool, expiryDuration time.Duration) (Token, error)
+
+// Token contains a returned auth token with its type and expiry in seconds
+type Token struct {
+	AccessToken string  `json:"access_token"`
+	TokenType   string  `json:"token_type"`
+	ExpiresIn   float64 `json:"expires_in"`
+}
 ```
 
 ## Installation
@@ -48,7 +57,9 @@ func NewChatkitSUToken(instanceID string, keyID string, keySecret string, expiry
 
 ## Getting Started
 
-Please refer to the /example directory.
+Please refer to the [`/example`](https://github.com/pusher/chatkit-server-go/tree/master/example) directory for examples that relate to managing users, roles, and permisisons.
+
+Check the [`/auth_example`](https://github.com/pusher/chatkit-server-go/tree/master/auth_example) directory for an example that shows authentication.
 
 ## Tests
 
@@ -56,7 +67,7 @@ Please refer to the /example directory.
 
 ## Documentation
 
-Available in the [Pusher Docs](https://docs.pusher.com/chatkit/overview/).
+Available in the [Pusher Docs](https://docs.pusher.com/chatkit).
 
 ## License
 

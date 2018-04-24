@@ -32,6 +32,9 @@ const (
 // It contains methods for creating and deleting users and managing those user's
 // roles and permissions.
 type Client interface {
+	// Authentication method
+	Authenticate(userID string) AuthenticationResponse
+
 	// Chatkit Roles and Permissions methods
 	GetRoles() ([]Role, error)
 	CreateRole(Role) error
@@ -64,15 +67,15 @@ func NewClient(instanceLocator string, key string) (Client, error) {
 		return nil, err
 	}
 
-	tokenManager := newTokenManager(instanceID, keyID, keySecret)
+	authenticator := newAuthenticator(instanceID, keyID, keySecret)
 
-	return newClient(host, apiVersion, instanceID, tokenManager), nil
+	return newClient(host, apiVersion, instanceID, authenticator), nil
 }
 
 type client struct {
 	Client http.Client
 
-	tokenManager tokenManager
+	authenticator Authenticator
 
 	authEndpoint   string
 	serverEndpoint string
@@ -82,7 +85,7 @@ func newClient(
 	host string,
 	apiVersion string,
 	instanceID string,
-	tokenManager tokenManager,
+	authenticator Authenticator,
 ) *client {
 	return &client{
 		Client: http.Client{},
@@ -98,8 +101,12 @@ func newClient(
 			apiVersion,
 			instanceID,
 		),
-		tokenManager: tokenManager,
+		authenticator: authenticator,
 	}
+}
+
+func (csc *client) Authenticate(userID string) AuthenticationResponse {
+	return csc.authenticator.authenticate(userID)
 }
 
 func (csc *client) newRequest(method, serviceName, path string, body interface{}) (*http.Request, error) {
@@ -130,7 +137,7 @@ func (csc *client) newRequest(method, serviceName, path string, body interface{}
 		req.Header.Set("Content-Type", "application/json")
 	}
 
-	token, err := csc.tokenManager.getToken()
+	token, err := csc.authenticator.getSUToken()
 	if err != nil {
 		return nil, err
 	}

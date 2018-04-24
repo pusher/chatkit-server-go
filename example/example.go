@@ -9,10 +9,10 @@ import (
 )
 
 func main() {
-	instanceLocator := os.Getenv("CHATKIT_INSTANCE_ID")
+	instanceLocator := os.Getenv("CHATKIT_INSTANCE_LOCATOR")
 	key := os.Getenv("CHATKIT_KEY")
 	if instanceLocator == "" || key == "" {
-		log.Fatalln("Please set the CHATKIT_INSTANCE_ID and CHATKIT_KEY environment variables to run the example")
+		log.Fatalln("Please set the CHATKIT_INSTANCE_LOCATOR and CHATKIT_KEY environment variables to run the example")
 	}
 
 	serverClient, err := chatkit.NewClient(instanceLocator, key)

@@ -2,6 +2,6 @@
 
 ## Run it
 
-    $ export CHATKIT_INSTANCE_ID="<your instance ID here>"
+    $ export CHATKIT_INSTANCE_LOCATOR="<your instance_locator here>"
     $ export CHATKIT_KEY="<your key here>"
     $ go run example.go
