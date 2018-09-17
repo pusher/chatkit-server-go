@@ -1,227 +1,107 @@
-/*
-Package chatkit is the Golang server SDK for Pusher Chatkit.
-
-This package provides the Client type for managing Chatkit users and
-interacting with roles and permissions of those users. It also contains some helper
-functions for creating your own JWT tokens for authentication with the Chatkit
-service.
-
-More information can be found in the Chatkit docs: https://docs.pusher.com/chatkit/overview/
-
-Please report any bugs or feature requests at: https://github.com/pusher/chatkit-server-go
-*/
+// Package chatkit is the Golang server SDK for Pusher Chatkit.
+//
+// This package provides the Client type for managing Chatkit users and
+// interacting with roles and permissions of those users. It also contains some helper
+// functions for creating your own JWT tokens for authentication with the Chatkit
+// service.
+//
+// More information can be found in the Chatkit docs: https://docs.pusher.com/chatkit/overview/
+//
+// Please report any bugs or feature requests at: https://github.com/pusher/chatkit-server-go
 package chatkit
 
 import (
-	"bytes"
-	"encoding/json"
-	"errors"
-	"fmt"
-	"io"
-	"io/ioutil"
-	"net/http"
-	"strings"
+	"github.com/pusher/chatkit-server-go/internal/authenticator"
+	"github.com/pusher/chatkit-server-go/internal/authorizer"
+	"github.com/pusher/chatkit-server-go/internal/core"
+	"github.com/pusher/chatkit-server-go/internal/cursors"
+
+	platformclient "github.com/pusher/pusher-platform-go/client"
+	instance "github.com/pusher/pusher-platform-go/instance"
 )
 
 const (
-	chatkitAuthService = "chatkit_authorizer"
-	chatkitService     = "chatkit"
+	chatkitAuthorizerServiceName    = "chatkit_authorizer"
+	chatkitAuthorizerServiceVersion = "v1"
+	chatkitServiceName              = "chatkit"
+	chatkitServiceVersion           = "v1"
+	chatkitCursorsServiceName       = "chatkit_cursors"
+	chatkitCursorsServiceVersion    = "v1"
 )
 
-// Client is the public interface of the Chatkit Server Client.
-// It contains methods for creating and deleting users and managing those user's
-// roles and permissions.
+// Public interface for the library.
+// It allows interacting with different Chatkit services.
 type Client interface {
-	// Authentication method
-	Authenticate(userID string) AuthenticationResponse
-
-	// Chatkit Roles and Permissions methods
-	GetRoles() ([]Role, error)
-	CreateRole(Role) error
-	DeleteRole(roleName string, scopeType string) error
-
-	GetUserRoles(userID string) ([]Role, error)
-	SetUserRole(userID string, userRole UserRole) error
-	DeleteUserRole(userID string, roomID *string) error
-
-	GetRolePermissions(roleName string, scopeName string) (*RolePermissions, error)
-	UpdateRolePermissions(roleName string, scopeName string, params UpdateRolePermissionsParams) error
-
-	// Chatkit User methods
-	CreateUser(user User) error
-	DeleteUser(userID string) error
-	GetUsers() ([]User, error)
-}
-
-// NewClient returns an instantiated instance that fulfils the Client interface
-func NewClient(instanceLocator string, key string) (Client, error) {
-	apiVersion, host, instanceID, err := getinstanceLocatorComponents(
-		instanceLocator,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	keyID, keySecret, err := getKeyComponents(key)
-	if err != nil {
-		return nil, err
-	}
-
-	authenticator := newAuthenticator(instanceID, keyID, keySecret)
-
-	return newClient(host, apiVersion, instanceID, authenticator), nil
+	authorizer.Service    // Provides access to the Roles and Permissions API
+	core.Service          // Provides access to the core (rooms, messages, users) chatkit API
+	cursors.Service       // Provides access to the Cursors API
+	authenticator.Service // Token generation and Authentication
 }
 
 type client struct {
-	Client http.Client
-
-	authenticator Authenticator
-
-	authEndpoint   string
-	serverEndpoint string
+	coreService          core.Service
+	authorizerService    authorizer.Service
+	cursorsService       cursors.Service
+	authenticatorService authenticator.Service
 }
 
-func newClient(
-	host string,
-	apiVersion string,
-	instanceID string,
-	authenticator Authenticator,
-) *client {
+// NewClient returns an instantiated instance that fulfils the Client interface.
+func NewClient(instanceLocator string, key string) (Client, error) {
+	locatorComponents, err := instance.ParseInstanceLocator(instanceLocator)
+	if err != nil {
+		return nil, err
+	}
+
+	keyComponents, err := instance.ParseKey(key)
+	if err != nil {
+		return nil, err
+	}
+
+	baseClient := platformclient.New(platformclient.Options{
+		Host: locatorComponents.Host(),
+	})
+
+	coreService, err := core.NewService(instance.Options{
+		Locator:        instanceLocator,
+		Key:            key,
+		ServiceName:    chatkitServiceName,
+		ServiceVersion: chatkitServiceVersion,
+		Client:         baseClient,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	authorizerService, err := authorizer.NewService(instance.Options{
+		Locator:        instanceLocator,
+		Key:            key,
+		ServiceName:    chatkitAuthorizerServiceName,
+		ServiceVersion: chatkitAuthorizerServiceVersion,
+		Client:         baseClient,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	cursorsService, err := cursors.NewService(instance.Options{
+		Locator:        instanceLocator,
+		Key:            key,
+		ServiceName:    chatkitCursorsServiceName,
+		ServiceVersion: chatkitCursorsServiceVersion,
+		Client:         baseClient,
+	})
+	if err != nil {
+		return nil, err
+	}
+
 	return &client{
-		Client: http.Client{},
-		authEndpoint: buildServiceEndpoint(
-			host,
-			chatkitAuthService,
-			apiVersion,
-			instanceID,
+		coreService:       coreService,
+		authorizerService: authorizerService,
+		cursorsService:    cursorsService,
+		authenticatorService: authenticator.NewService(
+			locatorComponents.InstanceID,
+			keyComponents.Key,
+			keyComponents.Secret,
 		),
-		serverEndpoint: buildServiceEndpoint(
-			host,
-			chatkitService,
-			apiVersion,
-			instanceID,
-		),
-		authenticator: authenticator,
-	}
-}
-
-func (csc *client) Authenticate(userID string) AuthenticationResponse {
-	return csc.authenticator.authenticate(userID)
-}
-
-func (csc *client) newRequest(method, serviceName, path string, body interface{}) (*http.Request, error) {
-	var url string
-	switch serviceName {
-	case chatkitAuthService:
-		url = csc.authEndpoint + path
-	case chatkitService:
-		url = csc.serverEndpoint + path
-	default:
-		return nil, errors.New("no service was provided to newRequest")
-	}
-
-	var buf io.ReadWriter
-	if body != nil {
-		buf = new(bytes.Buffer)
-		err := json.NewEncoder(buf).Encode(body)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	req, err := http.NewRequest(method, url, buf)
-	if err != nil {
-		return nil, err
-	}
-	if body != nil {
-		req.Header.Set("Content-Type", "application/json")
-	}
-
-	token, err := csc.authenticator.getSUToken()
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Authorization", "Bearer "+token)
-
-	return req, nil
-}
-
-func (csc *client) do(req *http.Request, responseBody interface{}) error {
-	resp, err := csc.Client.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode >= 300 {
-		body, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			return errors.New(resp.Status)
-		}
-		return errors.New(resp.Status + ": " + string(body))
-	}
-
-	if responseBody != nil {
-		return json.NewDecoder(resp.Body).Decode(responseBody)
-	}
-	return nil
-}
-
-func buildServiceEndpoint(
-	host string,
-	service string,
-	apiVersion string,
-	instanceID string,
-) string {
-	return fmt.Sprint(
-		"https://",
-		host,
-		".pusherplatform.io/services/",
-		service,
-		"/",
-		apiVersion,
-		"/",
-		instanceID,
-	)
-}
-
-func getinstanceLocatorComponents(
-	instanceLocator string,
-) (apiVersion string, host string, instanceID string, err error) {
-	components, err := getColonSeperatedComponents(instanceLocator, 3)
-	if err != nil {
-		return "", "", "", errors.New(
-			"Incorrect instanceLocator format given, please get your instanceLocator from your user dashboard",
-		)
-	}
-	return components[0], components[1], components[2], nil
-}
-
-func getKeyComponents(key string) (keyID string, keySecret string, err error) {
-	components, err := getColonSeperatedComponents(key, 2)
-	if err != nil {
-		return "", "", errors.New(
-			"Incorrect key format given, please get your key from your user dashboard",
-		)
-	}
-	return components[0], components[1], nil
-}
-
-func getColonSeperatedComponents(s string, expectedComponents int) ([]string, error) {
-	if s == "" {
-		return nil, errors.New("empty string")
-	}
-
-	components := strings.Split(s, ":")
-	if len(components) != expectedComponents {
-		return nil, errors.New("incorrect format")
-	}
-
-	for _, component := range components {
-		if component == "" {
-			return nil, errors.New("incorrect format")
-		}
-	}
-
-	return components, nil
+	}, nil
 }

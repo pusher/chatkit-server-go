@@ -9,48 +9,6 @@ service.
 
 Please report any bugs or feature requests via a GitHub issue on this repo.
 
-## Interface
-
-```go
-// Client is the public interface of the Chatkit Server Client
-type Client interface {
-    // Authentication method
-    Authenticate(userID string) AuthenticationResponse
-
-    // Chatkit Roles and Permissions methods
-    GetRoles() ([]Role, error)
-    CreateRole(Role) error
-    DeleteRole(roleName string, scopeType string) error
-
-    GetUserRoles(userID string) ([]Role, error)
-    CreateUserRole(userID string, userRole UserRole) error
-    UpdateUserRole(userID string, userRole UserRole) error
-    DeleteUserRole(userID string, roomID *string) error
-
-    CreateRolePermissions(roleName string, scopeName string, rolePerms RolePermissions) error
-    GetRolePermissions(roleName string, scopeName string) (*RolePermissions, error)
-    EditRolePermissions(roleName string, scopeName string, rolePerms RolePermissions) error
-
-    // Chatkit User methods
-    CreateUser(user User) error
-    DeleteUser(userID string) error
-    GetUsers() ([]User, error)
-}
-
-// NewClient instantiates a new Client instance
-func NewClient(instanceLocator string, key string) (Client, error)
-
-// NewChatkitToken is a Chatkit JWT token generation helper function
-func NewChatkitToken(instanceID string, keyID string, keySecret string, userID *string, su bool, expiryDuration time.Duration) (Token, error)
-
-// Token contains a returned auth token with its type and expiry in seconds
-type Token struct {
-	AccessToken string  `json:"access_token"`
-	TokenType   string  `json:"token_type"`
-	ExpiresIn   float64 `json:"expires_in"`
-}
-```
-
 ## Installation
 
     $ go get github.com/pusher/chatkit-server-go
@@ -61,13 +19,17 @@ Please refer to the [`/example`](https://github.com/pusher/chatkit-server-go/tre
 
 Check the [`/auth_example`](https://github.com/pusher/chatkit-server-go/tree/master/auth_example) directory for an example that shows authentication.
 
+## Usage
+
+## API
+
 ## Tests
 
     $ go test -v -cover
 
 ## Documentation
 
-Available in the [Pusher Docs](https://docs.pusher.com/chatkit).
+Available in the [Pusher Documentation](https://docs.pusher.com/chatkit).
 
 ## License
 
