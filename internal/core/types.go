@@ -33,11 +33,17 @@ type Message struct {
 	UpdatedAt time.Time `json:"updated_at"` // Updation timestamp
 }
 
+// GetUsersOptions contains parameters to pass when fetching users.
+type GetUsersOptions struct {
+	FromTimestamp string
+	Limit         uint
+}
+
 // CreateUserOptions contains parameters to pass when creating a new user.
 type CreateUserOptions struct {
 	ID         string      `json:"id"`
 	Name       string      `json:"name"`
-	AvatarURL  string      `json:"avatar_url,omitempty"`
+	AvatarURL  *string     `json:"avatar_url,omitempty"`
 	CustomData interface{} `json:"custom_data,omitempty"`
 }
 
@@ -52,25 +58,33 @@ type UpdateUserOptions struct {
 type CreateRoomOptions struct {
 	Name    string   `json:"name"`
 	Private bool     `json:"private"`
-	UserIDs []string `json:"user_ids"` // User ID's to be added to the room during creation
+	UserIDs []string `json:"user_ids,omitempty"` // User ID's to be added to the room during creation
 
 	CreatorID string
 }
 
+// GetRoomsOptions contains parameters to pass to fetch rooms.
+type GetRoomsOptions struct {
+	FromID         *uint `json:"from_id,omitempty"`
+	IncludePrivate bool  `json:"include_private"`
+}
+
 // UpdateRoomOptions contains parameters to pass when updating a room.
 type UpdateRoomOptions struct {
-	Name string `json:"string"`
+	Name    string `json:"string"`
+	Private bool   `json:"private"`
 }
 
 // CreateMessageOptions contains parameters to pass when sending a new message.
 type CreateMessageOptions struct {
-	RoomID string
-	Text   string
+	RoomID   uint
+	Text     string
+	SenderID string
 }
 
 // GetRoomMessagesOptions contains parameters to pass when fetching messages from a room.
 type GetRoomMessagesOptions struct {
-	InitialID uint   // Starting ID of messages to retrieve
-	Direction string // One of older or newer
-	Limit     uint   // Number of messages to retrieve
+	InitialID *uint   // Starting ID of messages to retrieve
+	Direction *string // One of older or newer
+	Limit     *uint   // Number of messages to retrieve
 }

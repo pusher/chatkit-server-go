@@ -1,13 +1,9 @@
 // Package chatkit is the Golang server SDK for Pusher Chatkit.
+// This package provides functionality to interact with various Chatkit services.
 //
-// This package provides the Client type for managing Chatkit users and
-// interacting with roles and permissions of those users. It also contains some helper
-// functions for creating your own JWT tokens for authentication with the Chatkit
-// service.
+// More information can be found in the Chatkit docs: https://docs.pusher.com/chatkit/overview/.
 //
-// More information can be found in the Chatkit docs: https://docs.pusher.com/chatkit/overview/
-//
-// Please report any bugs or feature requests at: https://github.com/pusher/chatkit-server-go
+// Please report any bugs or feature requests at: https://github.com/pusher/chatkit-server-go.
 package chatkit
 
 import (
@@ -24,21 +20,14 @@ const (
 	chatkitAuthorizerServiceName    = "chatkit_authorizer"
 	chatkitAuthorizerServiceVersion = "v1"
 	chatkitServiceName              = "chatkit"
-	chatkitServiceVersion           = "v1"
+	chatkitServiceVersion           = "v2"
 	chatkitCursorsServiceName       = "chatkit_cursors"
 	chatkitCursorsServiceVersion    = "v1"
 )
 
 // Public interface for the library.
 // It allows interacting with different Chatkit services.
-type Client interface {
-	authorizer.Service    // Provides access to the Roles and Permissions API
-	core.Service          // Provides access to the core (rooms, messages, users) chatkit API
-	cursors.Service       // Provides access to the Cursors API
-	authenticator.Service // Token generation and Authentication
-}
-
-type client struct {
+type Client struct {
 	coreService          core.Service
 	authorizerService    authorizer.Service
 	cursorsService       cursors.Service
@@ -46,7 +35,7 @@ type client struct {
 }
 
 // NewClient returns an instantiated instance that fulfils the Client interface.
-func NewClient(instanceLocator string, key string) (Client, error) {
+func NewClient(instanceLocator string, key string) (*Client, error) {
 	locatorComponents, err := instance.ParseInstanceLocator(instanceLocator)
 	if err != nil {
 		return nil, err
@@ -61,7 +50,7 @@ func NewClient(instanceLocator string, key string) (Client, error) {
 		Host: locatorComponents.Host(),
 	})
 
-	coreService, err := core.NewService(instance.Options{
+	coreInstance, err := instance.New(instance.Options{
 		Locator:        instanceLocator,
 		Key:            key,
 		ServiceName:    chatkitServiceName,
@@ -72,7 +61,7 @@ func NewClient(instanceLocator string, key string) (Client, error) {
 		return nil, err
 	}
 
-	authorizerService, err := authorizer.NewService(instance.Options{
+	authorizerInstance, err := instance.New(instance.Options{
 		Locator:        instanceLocator,
 		Key:            key,
 		ServiceName:    chatkitAuthorizerServiceName,
@@ -83,7 +72,7 @@ func NewClient(instanceLocator string, key string) (Client, error) {
 		return nil, err
 	}
 
-	cursorsService, err := cursors.NewService(instance.Options{
+	cursorsInstance, err := instance.New(instance.Options{
 		Locator:        instanceLocator,
 		Key:            key,
 		ServiceName:    chatkitCursorsServiceName,
@@ -94,10 +83,10 @@ func NewClient(instanceLocator string, key string) (Client, error) {
 		return nil, err
 	}
 
-	return &client{
-		coreService:       coreService,
-		authorizerService: authorizerService,
-		cursorsService:    cursorsService,
+	return &Client{
+		coreService:       core.NewService(coreInstance),
+		authorizerService: authorizer.NewService(authorizerInstance),
+		cursorsService:    cursors.NewService(cursorsInstance),
 		authenticatorService: authenticator.NewService(
 			locatorComponents.InstanceID,
 			keyComponents.Key,

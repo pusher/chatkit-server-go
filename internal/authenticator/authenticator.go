@@ -4,8 +4,8 @@ import (
 	auth "github.com/pusher/pusher-platform-go/auth"
 )
 
-// Exposes helper methods for authentication
-// Extends the `auth.Authenticator` interface
+// Exposes helper methods for authentication.
+// Extends the `auth.Authenticator` interface.
 type Service interface {
 	Authenticate(payload auth.Payload, options auth.Options) (*auth.Response, error)
 	GenerateAccessToken(options auth.Options) (auth.TokenWithExpiry, error)
