@@ -1,15 +1,18 @@
 package cursors
 
 import (
+	"context"
+	"errors"
+
 	"github.com/pusher/pusher-platform-go/instance"
 )
 
 // Exposes methods to interact with the cursors service
 type Service interface {
-	GetUserReadCursors(userID string) ([]Cursor, error)
-	SetReadCursor(options SetReadCursorOptions) error
-	GetReadCursorsForRoom(roomID uint) ([]Cursor, error)
-	GetReadCursor(options GetReadCursorOptions) (Cursor, error)
+	GetUserReadCursors(ctx context.Context, userID string) ([]Cursor, error)
+	SetReadCursor(ctx context.Context, options SetReadCursorOptions) error
+	GetReadCursorsForRoom(ctx context.Context, roomID uint) ([]Cursor, error)
+	GetReadCursor(ctx context.Context, options GetReadCursorOptions) (Cursor, error)
 }
 
 type cursorsService struct {
