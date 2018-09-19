@@ -1,3 +1,8 @@
+// Package core expoeses the Authorizer API that allows making requests to the
+// Chatkit Authorizer service. This allows manipulation of Roles and Permissions.
+//
+// All methods that are part of the interface require a JWT token with a
+// `su` to be able to access them.
 package authorizer
 
 import (
@@ -45,7 +50,7 @@ type Service interface {
 	// User roles
 	GetUserRoles(ctx context.Context, userID string) ([]Role, error)
 	AssignGlobalRoleToUser(ctx context.Context, userID string, roleName string) error
-	AssignRoomRoleToUser(ctx context.Context, userID string, roleName string, roomID uint) error
+	AssignRoomRoleToUser(ctx context.Context, userID string, roomID uint, roleName string) error
 	RemoveGlobalRoleForUser(ctx context.Context, userID string) error
 	RemoveRoomRoleForUser(ctx context.Context, userID string, roomID uint) error
 
@@ -279,8 +284,8 @@ func (as *authorizerService) AssignGlobalRoleToUser(
 func (as *authorizerService) AssignRoomRoleToUser(
 	ctx context.Context,
 	userID string,
-	roleName string,
 	roomID uint,
+	roleName string,
 ) error {
 	return as.assignRoleToUser(ctx, userID, roleName, &roomID)
 }

@@ -75,8 +75,8 @@ type UpdateRoomOptions struct {
 	Private bool   `json:"private"`
 }
 
-// CreateMessageOptions contains parameters to pass when sending a new message.
-type CreateMessageOptions struct {
+// SendMessageOptions contains parameters to pass when sending a new message.
+type SendMessageOptions struct {
 	RoomID   uint
 	Text     string
 	SenderID string

@@ -1,3 +1,5 @@
+// Package authenticator exposes an interface that performs authentication and authorization.
+// It is primarily used to generate JWT access tokens.
 package authenticator
 
 import (

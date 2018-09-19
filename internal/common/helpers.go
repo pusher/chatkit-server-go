@@ -1,3 +1,4 @@
+// Package common provides helpers that are shared across the other packages.
 package common
 
 import (

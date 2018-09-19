@@ -1,3 +1,4 @@
+// Package cursors exposes an interface that allows making requests to the Chatkit cursors service.
 package cursors
 
 import (

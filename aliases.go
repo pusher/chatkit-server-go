@@ -9,6 +9,8 @@ import (
 	platformclient "github.com/pusher/pusher-platform-go/client"
 )
 
+const GrantTypeClientCredentials = auth.GrantTypeClientCredentials
+
 type (
 	AuthenticatePayload = auth.Payload
 	AuthenticateOptions = auth.Options
@@ -29,7 +31,7 @@ type (
 	GetRoomsOptions        = core.GetRoomsOptions
 	CreateRoomOptions      = core.CreateRoomOptions
 	UpdateRoomOptions      = core.UpdateRoomOptions
-	CreateMessageOptions   = core.CreateMessageOptions
+	SendMessageOptions     = core.SendMessageOptions
 	GetRoomMessagesOptions = core.GetRoomMessagesOptions
 	User                   = core.User
 	Room                   = core.Room

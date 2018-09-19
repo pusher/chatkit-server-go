@@ -1,3 +1,5 @@
+// Package core exposes an interface that allows making requests to the core
+// Chatkit API to allow operations to be performed against Users, Rooms and Messages.
 package core
 
 import (
@@ -20,7 +22,7 @@ type Service interface {
 	// Users
 	GetUser(ctx context.Context, userID string) (User, error)
 	GetUsers(ctx context.Context, options *GetUsersOptions) ([]User, error)
-	GetUsersByIDs(ctx context.Context, userIDs []string) ([]User, error)
+	GetUsersByID(ctx context.Context, userIDs []string) ([]User, error)
 	CreateUser(ctx context.Context, options CreateUserOptions) error
 	CreateUsers(ctx context.Context, users []CreateUserOptions) error
 	UpdateUser(ctx context.Context, userID string, options UpdateUserOptions) error
@@ -31,14 +33,14 @@ type Service interface {
 	GetRooms(ctx context.Context, options GetRoomsOptions) ([]Room, error)
 	GetUserRooms(ctx context.Context, userID string) ([]Room, error)
 	GetUserJoinableRooms(ctx context.Context, userID string) ([]Room, error)
-	CreateRoom(ctx context.Context, options CreateRoomOptions) error
+	CreateRoom(ctx context.Context, options CreateRoomOptions) (Room, error)
 	UpdateRoom(ctx context.Context, roomID uint, options UpdateRoomOptions) error
 	DeleteRoom(ctx context.Context, roomID uint) error
 	AddUsersToRoom(ctx context.Context, roomID uint, userIDs []string) error
 	RemoveUsersFromRoom(ctx context.Context, roomID uint, userIds []string) error
 
 	// Messages
-	SendMessage(ctx context.Context, options CreateMessageOptions) (uint, error)
+	SendMessage(ctx context.Context, options SendMessageOptions) (uint, error)
 	GetRoomMessages(ctx context.Context, roomID uint, options GetRoomMessagesOptions) ([]Message, error)
 	DeleteMessage(ctx context.Context, messageID uint) error
 
@@ -109,8 +111,8 @@ func (cs *coreService) GetUsers(ctx context.Context, options *GetUsersOptions) (
 	return users, nil
 }
 
-// GetUsersByIDs returns a list of users whose ID's are supplied.
-func (cs *coreService) GetUsersByIDs(ctx context.Context, userIDs []string) ([]User, error) {
+// GetUsersByID returns a list of users whose ID's are supplied.
+func (cs *coreService) GetUsersByID(ctx context.Context, userIDs []string) ([]User, error) {
 	response, err := common.RequestWithSuToken(cs.underlyingInstance, ctx, client.RequestOptions{
 		Method: http.MethodGet,
 		Path:   "/users_by_ids",
@@ -330,31 +332,41 @@ func (cs *coreService) getRoomsForUser(
 }
 
 // CreateRoom creates a room.
-func (cs *coreService) CreateRoom(ctx context.Context, options CreateRoomOptions) error {
+func (cs *coreService) CreateRoom(ctx context.Context, options CreateRoomOptions) (Room, error) {
 	if options.CreatorID == "" {
-		return errors.New("Yout must provide the ID of the user creating the room")
+		return Room{}, errors.New("Yout must provide the ID of the user creating the room")
 	}
 
 	if options.Name == "" {
-		return errors.New("You must provide a name for the room")
+		return Room{}, errors.New("You must provide a name for the room")
 	}
 
 	requestBody, err := common.CreateRequestBody(&options)
 	if err != nil {
-		return err
+		return Room{}, err
 	}
 
-	response, err := common.RequestWithSuToken(cs.underlyingInstance, ctx, client.RequestOptions{
-		Method: http.MethodPost,
-		Path:   "/rooms",
-		Body:   requestBody,
-	})
+	response, err := common.RequestWithUserToken(
+		cs.underlyingInstance,
+		ctx,
+		options.CreatorID, client.RequestOptions{
+			Method: http.MethodPost,
+			Path:   "/rooms",
+			Body:   requestBody,
+		},
+	)
 	if err != nil {
-		return err
+		return Room{}, err
 	}
 	defer response.Body.Close()
 
-	return nil
+	var room Room
+	err = common.DecodeResponseBody(response.Body, &room)
+	if err != nil {
+		return Room{}, err
+	}
+
+	return room, nil
 }
 
 // UpdateRoom updates an existing room based on the options provided.
@@ -446,7 +458,7 @@ func (cs *coreService) RemoveUsersFromRoom(ctx context.Context, roomID uint, use
 }
 
 // SendMessage publishes a message to a room.
-func (cs *coreService) SendMessage(ctx context.Context, options CreateMessageOptions) (uint, error) {
+func (cs *coreService) SendMessage(ctx context.Context, options SendMessageOptions) (uint, error) {
 	if options.Text == "" {
 		return 0, errors.New("You must provide some text for the message")
 	}
