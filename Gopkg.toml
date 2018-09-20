@@ -27,7 +27,11 @@
 
 [[constraint]]
   name = "github.com/pusher/pusher-platform-go"
-  version = "0.1.0"
+  version = "0.1.2"
+
+[[constraint]]
+  name = "github.com/smartystreets/goconvey"
+  version = "1.6.3"
 
 [prune]
   go-tests = true
