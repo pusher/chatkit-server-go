@@ -21,7 +21,6 @@ type (
 	CreateRoleOptions            = authorizer.CreateRoleOptions
 	UpdateRolePermissionsOptions = authorizer.UpdateRolePermissionsOptions
 	Role                         = authorizer.Role
-	RolePermissions              = authorizer.RolePermissions
 
 	Cursor = cursors.Cursor
 

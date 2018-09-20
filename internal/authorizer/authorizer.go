@@ -34,8 +34,8 @@ type Service interface {
 	DeleteRoomRole(ctx context.Context, roleName string) error
 
 	// Permissions
-	GetPermissionsForGlobalRole(ctx context.Context, roleName string) (RolePermissions, error)
-	GetPermissionsForRoomRole(ctx context.Context, roleName string) (RolePermissions, error)
+	GetPermissionsForGlobalRole(ctx context.Context, roleName string) ([]string, error)
+	GetPermissionsForRoomRole(ctx context.Context, roleName string) ([]string, error)
 	UpdatePermissionsForGlobalRole(
 		ctx context.Context,
 		roleName string,
@@ -163,7 +163,7 @@ func (as *authorizerService) deleteRole(ctx context.Context, roleName string, sc
 func (as *authorizerService) GetPermissionsForGlobalRole(
 	ctx context.Context,
 	roleName string,
-) (RolePermissions, error) {
+) ([]string, error) {
 	return as.getPermissions(ctx, roleName, scopeGlobal)
 }
 
@@ -171,7 +171,7 @@ func (as *authorizerService) GetPermissionsForGlobalRole(
 func (as *authorizerService) GetPermissionsForRoomRole(
 	ctx context.Context,
 	roleName string,
-) (RolePermissions, error) {
+) ([]string, error) {
 	return as.getPermissions(ctx, roleName, scopeRoom)
 }
 
@@ -180,20 +180,20 @@ func (as *authorizerService) getPermissions(
 	ctx context.Context,
 	roleName string,
 	scope string,
-) (RolePermissions, error) {
+) ([]string, error) {
 	response, err := common.RequestWithSuToken(as.underlyingInstance, ctx, client.RequestOptions{
 		Method: http.MethodGet,
 		Path:   fmt.Sprintf("/roles/%s/scope/%s/permissions", roleName, scope),
 	})
 	if err != nil {
-		return RolePermissions{}, err
+		return nil, err
 	}
 	defer response.Body.Close()
 
-	var rolePermissions RolePermissions
+	var rolePermissions []string
 	err = common.DecodeResponseBody(response.Body, &rolePermissions)
 	if err != nil {
-		return RolePermissions{}, err
+		return nil, err
 	}
 
 	return rolePermissions, nil

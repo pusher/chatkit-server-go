@@ -18,11 +18,6 @@ type AssignRoleOptions struct {
 	CreateRoleOptions
 }
 
-// RolePermissions represents the permissions associated with a role.
-type RolePermissions struct {
-	Permissions []string `json:"permissions` // List of permissions associated with a role
-}
-
 // UserRole represents the type of role associated with a user.
 type UserRole struct {
 	Name   string `json:"name"`              // Name of the role

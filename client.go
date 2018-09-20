@@ -160,7 +160,7 @@ func (c *Client) DeleteRoomRole(ctx context.Context, roleName string) error {
 func (c *Client) GetPermissionsForGlobalRole(
 	ctx context.Context,
 	roleName string,
-) (RolePermissions, error) {
+) ([]string, error) {
 	return c.authorizerService.GetPermissionsForGlobalRole(ctx, roleName)
 }
 
@@ -168,7 +168,7 @@ func (c *Client) GetPermissionsForGlobalRole(
 func (c *Client) GetPermissionsForRoomRole(
 	ctx context.Context,
 	roleName string,
-) (RolePermissions, error) {
+) ([]string, error) {
 	return c.authorizerService.GetPermissionsForRoomRole(ctx, roleName)
 }
 
