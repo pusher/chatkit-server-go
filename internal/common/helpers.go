@@ -74,7 +74,7 @@ func RequestWithUserToken(
 	userID string,
 	options client.RequestOptions,
 ) (*http.Response, error) {
-	token, err := generateTokenFromInstance(inst, auth.Options{UserID: &userID})
+	token, err := generateTokenFromInstance(inst, auth.Options{UserID: &userID, Su: true})
 	if err != nil {
 		return nil, err
 	}
