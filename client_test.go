@@ -54,7 +54,9 @@ func getConfig() (*config, error) {
 	return &config{instanceLocator, key}, nil
 }
 
-func createUser() (string, error) {
+func createUser(
+	client *Client,
+) (string, error) {
 	userID := randomString()
 	err := client.CreateUser(context.Background(), CreateUserOptions{
 		ID:   userID,
@@ -74,7 +76,7 @@ func createUserWithGlobalPermissions(
 	client *Client,
 	permissions []string,
 ) (string, error) {
-	userID, err := createUser()
+	userID, err := createUser(client)
 	if err != nil {
 		return userID, err
 	}
@@ -326,7 +328,7 @@ func TestAuthorizer(t *testing.T) {
 		})
 
 		Convey("on creating a user, a room and a global and room role", func() {
-			userID, err := createUser()
+			userID, err := createUser(client)
 			So(err, ShouldBeNil)
 
 			globalRoleName := randomString()
