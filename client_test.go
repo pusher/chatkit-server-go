@@ -356,16 +356,43 @@ func TestAuthorizer(t *testing.T) {
 			Convey("it should be possible to assign a global scoped role to a user", func() {
 				err := client.AssignGlobalRoleToUser(context.Background(), userID, globalRoleName)
 				So(err, ShouldBeNil)
+
+				Convey("and to get that role", func() {
+					roles, err := client.GetUserRoles(context.Background(), userID)
+					So(err, ShouldBeNil)
+					So(roles, ShouldContain, Role{
+						Name:        globalRoleName,
+						Permissions: globalPermissions,
+						Scope:       "global",
+					})
+				})
+
+				Convey("and remove it again", func() {
+					err := client.RemoveGlobalRoleForUser(context.Background(), userID)
+					So(err, ShouldBeNil)
+				})
 			})
 
 			Convey("it should be possible to assign a room scoped role to a user", func() {
 				err := client.AssignRoomRoleToUser(context.Background(), userID, room.ID, roomRoleName)
 				So(err, ShouldBeNil)
+
+				Convey("and to get that role", func() {
+					roles, err := client.GetUserRoles(context.Background(), userID)
+					So(err, ShouldBeNil)
+					So(roles, ShouldContain, Role{
+						Name:        roomRoleName,
+						Permissions: roomPermissions,
+						Scope:       "room",
+					})
+				})
+
+				Convey("and remove it again", func() {
+					err := client.RemoveRoomRoleForUser(context.Background(), userID, room.ID)
+					So(err, ShouldBeNil)
+				})
 			})
 
-			Convey("it should be possible to get roles for a user", func() {
-
-			})
 		})
 
 		Reset(func() {

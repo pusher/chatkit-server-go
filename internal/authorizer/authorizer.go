@@ -349,7 +349,7 @@ func (as *authorizerService) removeRoleForUser(
 		return errors.New("You must provide the ID of the user you want to remove a role for")
 	}
 
-	var queryParams url.Values
+	queryParams := url.Values{}
 	if roomID != nil {
 		queryParams.Add("room_id", strconv.Itoa(int(*roomID)))
 	}
