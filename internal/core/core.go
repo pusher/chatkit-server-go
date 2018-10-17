@@ -86,7 +86,7 @@ func (cs *coreService) GetUser(ctx context.Context, userID string) (User, error)
 // GetUsers retrieves a batch of users depending on the optionally passed in parameters.
 // If not options are passed in, the server will return the default limit of 20 users.
 func (cs *coreService) GetUsers(ctx context.Context, options *GetUsersOptions) ([]User, error) {
-	var queryParams url.Values
+	queryParams := url.Values{}
 	if options != nil {
 		queryParams.Add("from_ts", options.FromTimestamp)
 		queryParams.Add("limit", strconv.Itoa(int(options.Limit)))
@@ -256,7 +256,7 @@ func (cs *coreService) GetRoom(ctx context.Context, roomID uint) (Room, error) {
 
 // GetRooms retrieves a list of rooms with the given parameters.
 func (cs *coreService) GetRooms(ctx context.Context, options GetRoomsOptions) ([]Room, error) {
-	var queryParams url.Values
+	queryParams := url.Values{}
 	if options.FromID != nil {
 		queryParams.Add("from_id", strconv.Itoa(int(*options.FromID)))
 	}
@@ -371,17 +371,13 @@ func (cs *coreService) CreateRoom(ctx context.Context, options CreateRoomOptions
 
 // UpdateRoom updates an existing room based on the options provided.
 func (cs *coreService) UpdateRoom(ctx context.Context, roomID uint, options UpdateRoomOptions) error {
-	if options.Name == "" {
-		return errors.New("You must provide a name for the room")
-	}
-
 	requestBody, err := common.CreateRequestBody(&options)
 	if err != nil {
 		return err
 	}
 
 	response, err := common.RequestWithSuToken(cs.underlyingInstance, ctx, client.RequestOptions{
-		Method: http.MethodPost,
+		Method: http.MethodPut,
 		Path:   fmt.Sprintf("/rooms/%d", roomID),
 		Body:   requestBody,
 	})
@@ -397,7 +393,7 @@ func (cs *coreService) UpdateRoom(ctx context.Context, roomID uint, options Upda
 func (cs *coreService) DeleteRoom(ctx context.Context, roomID uint) error {
 	response, err := common.RequestWithSuToken(cs.underlyingInstance, ctx, client.RequestOptions{
 		Method: http.MethodDelete,
-		Path:   fmt.Sprintf("/rooms/%s", roomID),
+		Path:   fmt.Sprintf("/rooms/%d", roomID),
 	})
 	if err != nil {
 		return err
@@ -421,7 +417,7 @@ func (cs *coreService) AddUsersToRoom(ctx context.Context, roomID uint, userIDs 
 
 	response, err := common.RequestWithSuToken(cs.underlyingInstance, ctx, client.RequestOptions{
 		Method: http.MethodPut,
-		Path:   fmt.Sprintf("/rooms/%s/users/add", roomID),
+		Path:   fmt.Sprintf("/rooms/%d/users/add", roomID),
 		Body:   requestBody,
 	})
 	if err != nil {
@@ -446,7 +442,7 @@ func (cs *coreService) RemoveUsersFromRoom(ctx context.Context, roomID uint, use
 
 	response, err := common.RequestWithSuToken(cs.underlyingInstance, ctx, client.RequestOptions{
 		Method: http.MethodPut,
-		Path:   fmt.Sprintf("/rooms/%s/users/remove", roomID),
+		Path:   fmt.Sprintf("/rooms/%d/users/remove", roomID),
 		Body:   requestBody,
 	})
 	if err != nil {
@@ -515,7 +511,7 @@ func (cs *coreService) GetRoomMessages(
 	roomID uint,
 	options GetRoomMessagesOptions,
 ) ([]Message, error) {
-	var queryParams url.Values
+	queryParams := url.Values{}
 	if options.Direction != nil {
 		queryParams.Add("direction", *options.Direction)
 	}

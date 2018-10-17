@@ -71,8 +71,8 @@ type GetRoomsOptions struct {
 
 // UpdateRoomOptions contains parameters to pass when updating a room.
 type UpdateRoomOptions struct {
-	Name    string `json:"string"`
-	Private bool   `json:"private"`
+	Name    *string `json:"name,omitempty"`
+	Private *bool   `json:"private,omitempty"`
 }
 
 // SendMessageOptions contains parameters to pass when sending a new message.

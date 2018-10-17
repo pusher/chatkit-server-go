@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"reflect"
 	"sort"
 	"testing"
 	"time"
@@ -131,6 +132,45 @@ func deleteAllResources(client *Client) error {
 	}
 
 	return nil
+}
+
+func interfaceToSliceOfInterfaces(s interface{}) []interface{} {
+	t := reflect.ValueOf(s)
+	if t.Kind() != reflect.Slice {
+		panic("can't coerce non slice to []interface{}")
+	}
+	u := make([]interface{}, t.Len())
+	for i := 0; i < t.Len(); i++ {
+		u[i] = t.Index(i).Interface()
+	}
+	return u
+}
+
+func containsResembling(s []interface{}, x interface{}) bool {
+	for _, y := range s {
+		if reflect.DeepEqual(x, y) {
+			return true
+		}
+	}
+	return false
+}
+
+// assumes neither actual nor expected contain repetitions
+func shouldResembleUpToReordering(
+	actual interface{},
+	expected ...interface{},
+) string {
+	s := interfaceToSliceOfInterfaces(actual)
+	t := interfaceToSliceOfInterfaces(expected[0])
+	if len(s) != len(t) {
+		return fmt.Sprintf("%s and %s are not the same length!", s, t)
+	}
+	for _, x := range s {
+		if !containsResembling(t, x) {
+			return fmt.Sprintf("%s contains %s, but %s does not", s, x, t)
+		}
+	}
+	return ""
 }
 
 func TestCursors(t *testing.T) {
@@ -583,6 +623,228 @@ func TestUsers(t *testing.T) {
 
 		Reset(func() {
 			deleteAllResources(client)
+		})
+	})
+}
+
+func TestRooms(t *testing.T) {
+	ctx := context.Background()
+
+	config, err := getConfig()
+	if err != nil {
+		t.Fatalf("Failed to get test config: %s", err.Error())
+	}
+
+	client, err := NewClient(config.instanceLocator, config.key)
+	if err != nil {
+		t.Fatalf("Failed to create client: %s", err.Error())
+	}
+
+	Convey("Given some users", t, func() {
+		aliceID, err := createUser(client)
+		So(err, ShouldBeNil)
+
+		bobID, err := createUser(client)
+		So(err, ShouldBeNil)
+
+		carolID, err := createUser(client)
+		So(err, ShouldBeNil)
+
+		Convey("we can create a room", func() {
+			roomName := randomString()
+
+			room, err := client.CreateRoom(ctx, CreateRoomOptions{
+				Name:      roomName,
+				Private:   true,
+				UserIDs:   []string{aliceID, bobID},
+				CreatorID: aliceID,
+			})
+			So(err, ShouldBeNil)
+			So(room.Name, ShouldEqual, roomName)
+			So(room.Private, ShouldEqual, true)
+			So(room.MemberUserIDs, shouldResembleUpToReordering, []string{aliceID, bobID})
+
+			Convey("and get it", func() {
+				r, err := client.GetRoom(ctx, room.ID)
+				So(err, ShouldBeNil)
+				So(r.ID, ShouldEqual, room.ID)
+				So(r.Name, ShouldEqual, roomName)
+				So(r.Private, ShouldEqual, true)
+				So(r.MemberUserIDs, shouldResembleUpToReordering, []string{aliceID, bobID})
+			})
+
+			Convey("and update it", func() {
+				newRoomName := randomString()
+				err := client.UpdateRoom(ctx, room.ID, UpdateRoomOptions{
+					Name: &newRoomName,
+				})
+				So(err, ShouldBeNil)
+
+				Convey("and get it again", func() {
+					r, err := client.GetRoom(ctx, room.ID)
+					So(err, ShouldBeNil)
+					So(r.ID, ShouldEqual, room.ID)
+					So(r.Name, ShouldEqual, newRoomName)
+					So(r.Private, ShouldEqual, true)
+					So(r.MemberUserIDs, shouldResembleUpToReordering, []string{aliceID, bobID})
+				})
+			})
+
+			Convey("and delete it", func() {
+				err := client.DeleteRoom(ctx, room.ID)
+				So(err, ShouldBeNil)
+
+				Convey("and can't get it any more", func() {
+					_, err := client.GetRoom(ctx, room.ID)
+					So(err.(*ErrorResponse).Status, ShouldEqual, 404)
+					So(
+						err.(*ErrorResponse).Info.(map[string]interface{})["error"],
+						ShouldEqual,
+						"services/chatkit/not_found/room_not_found",
+					)
+				})
+			})
+
+			Convey("and add users to it", func() {
+				err := client.AddUsersToRoom(ctx, room.ID, []string{carolID})
+				So(err, ShouldBeNil)
+
+				r, err := client.GetRoom(ctx, room.ID)
+				So(err, ShouldBeNil)
+				So(r.MemberUserIDs, shouldResembleUpToReordering, []string{aliceID, bobID, carolID})
+			})
+
+			Convey("and remove users from it", func() {
+				err := client.RemoveUsersFromRoom(ctx, room.ID, []string{bobID})
+				So(err, ShouldBeNil)
+
+				r, err := client.GetRoom(ctx, room.ID)
+				So(err, ShouldBeNil)
+				So(r.MemberUserIDs, shouldResembleUpToReordering, []string{aliceID})
+			})
+		})
+
+		Convey("we can create a couple of rooms", func() {
+			room1, err := client.CreateRoom(ctx, CreateRoomOptions{
+				Name:      randomString(),
+				UserIDs:   []string{aliceID, bobID},
+				CreatorID: aliceID,
+			})
+			So(err, ShouldBeNil)
+
+			room2, err := client.CreateRoom(ctx, CreateRoomOptions{
+				Name:      randomString(),
+				UserIDs:   []string{aliceID},
+				CreatorID: aliceID,
+			})
+			So(err, ShouldBeNil)
+
+			Convey("and get them", func() {
+				rooms, err := client.GetRooms(ctx, GetRoomsOptions{})
+				So(err, ShouldBeNil)
+				So(len(rooms), ShouldEqual, 2)
+				So(
+					[]uint{rooms[0].ID, rooms[1].ID},
+					shouldResembleUpToReordering,
+					[]uint{room1.ID, room2.ID},
+				)
+			})
+
+			Convey("and get a user's rooms", func() {
+				rooms, err := client.GetUserRooms(ctx, bobID)
+				So(err, ShouldBeNil)
+				So(len(rooms), ShouldEqual, 1)
+				So(rooms[0].ID, ShouldEqual, room1.ID)
+			})
+
+			Convey("and get a user's joinable rooms", func() {
+				rooms, err := client.GetUserJoinableRooms(ctx, bobID)
+				So(err, ShouldBeNil)
+				So(len(rooms), ShouldEqual, 1)
+				So(rooms[0].ID, ShouldEqual, room2.ID)
+			})
+		})
+
+		Reset(func() {
+			deleteAllResources(client)
+		})
+	})
+}
+
+func TestMessages(t *testing.T) {
+	ctx := context.Background()
+
+	config, err := getConfig()
+	if err != nil {
+		t.Fatalf("Failed to get test config: %s", err.Error())
+	}
+
+	client, err := NewClient(config.instanceLocator, config.key)
+	if err != nil {
+		t.Fatalf("Failed to create client: %s", err.Error())
+	}
+
+	Convey("Given a user and a room", t, func() {
+		userID, err := createUser(client)
+		So(err, ShouldBeNil)
+
+		room, err := client.CreateRoom(ctx, CreateRoomOptions{
+			Name:      randomString(),
+			CreatorID: userID,
+		})
+		So(err, ShouldBeNil)
+
+		Convey("we can publish messages from that user", func() {
+			messageID1, err := client.SendMessage(ctx, SendMessageOptions{
+				RoomID:   room.ID,
+				Text:     "one",
+				SenderID: userID,
+			})
+			So(err, ShouldBeNil)
+
+			messageID2, err := client.SendMessage(ctx, SendMessageOptions{
+				RoomID:   room.ID,
+				Text:     "two",
+				SenderID: userID,
+			})
+			So(err, ShouldBeNil)
+
+			messageID3, err := client.SendMessage(ctx, SendMessageOptions{
+				RoomID:   room.ID,
+				Text:     "three",
+				SenderID: userID,
+			})
+			So(err, ShouldBeNil)
+
+			messageID4, err := client.SendMessage(ctx, SendMessageOptions{
+				RoomID:   room.ID,
+				Text:     "four",
+				SenderID: userID,
+			})
+			So(err, ShouldBeNil)
+
+			Convey("and fetch them", func() {
+				limit := uint(2)
+				messagesPage1, err := client.GetRoomMessages(ctx, room.ID, GetRoomMessagesOptions{
+					Limit: &limit,
+				})
+				So(err, ShouldBeNil)
+				So(len(messagesPage1), ShouldEqual, 2)
+				So(messagesPage1[0].ID, ShouldEqual, messageID4)
+				So(messagesPage1[0].Text, ShouldEqual, "four")
+				So(messagesPage1[1].ID, ShouldEqual, messageID3)
+				So(messagesPage1[1].Text, ShouldEqual, "three")
+
+				messagesPage2, err := client.GetRoomMessages(ctx, room.ID, GetRoomMessagesOptions{
+					InitialID: &messageID3,
+				})
+				So(err, ShouldBeNil)
+				So(len(messagesPage2), ShouldEqual, 2)
+				So(messagesPage2[0].ID, ShouldEqual, messageID2)
+				So(messagesPage2[0].Text, ShouldEqual, "two")
+				So(messagesPage2[1].ID, ShouldEqual, messageID1)
+				So(messagesPage2[1].Text, ShouldEqual, "one")
+			})
 		})
 	})
 }
