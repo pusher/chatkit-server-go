@@ -2,11 +2,13 @@ package chatkit
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math/rand"
 	"net/http"
 	"os"
+	"sort"
 	"testing"
 	"time"
 
@@ -393,6 +395,190 @@ func TestAuthorizer(t *testing.T) {
 				})
 			})
 
+		})
+
+		Reset(func() {
+			deleteAllResources(client)
+		})
+	})
+}
+
+func TestUsers(t *testing.T) {
+	ctx := context.Background()
+
+	config, err := getConfig()
+	if err != nil {
+		t.Fatalf("Failed to get test config: %s", err.Error())
+	}
+
+	client, err := NewClient(config.instanceLocator, config.key)
+	if err != nil {
+		t.Fatalf("Failed to create client: %s", err.Error())
+	}
+
+	Convey("We can create a user", t, func() {
+		userID := randomString()
+		avatarURL := "https://" + randomString()
+		err := client.CreateUser(ctx, CreateUserOptions{
+			ID:         userID,
+			Name:       "integration-test-user",
+			AvatarURL:  &avatarURL,
+			CustomData: json.RawMessage([]byte(`{"foo":"hello","bar":42}`)),
+		})
+		So(err, ShouldBeNil)
+
+		Convey("and we can can get them", func() {
+			user, err := client.GetUser(ctx, userID)
+			So(err, ShouldBeNil)
+			So(user.ID, ShouldEqual, userID)
+			So(user.Name, ShouldEqual, "integration-test-user")
+			So(user.AvatarURL, ShouldEqual, avatarURL)
+			So(len(user.CustomData), ShouldEqual, 2)
+			So(user.CustomData["foo"], ShouldEqual, "hello")
+			So(user.CustomData["bar"], ShouldEqual, 42)
+		})
+
+		Convey("and we can update them", func() {
+			newName := randomString()
+			newAvatarURL := "https://" + randomString()
+
+			err := client.UpdateUser(ctx, userID, UpdateUserOptions{
+				Name:       &newName,
+				AvatarUrl:  &newAvatarURL,
+				CustomData: json.RawMessage([]byte(`{"foo":"goodbye"}`)),
+			})
+			So(err, ShouldBeNil)
+
+			Convey("and get them again", func() {
+				user, err := client.GetUser(ctx, userID)
+				So(err, ShouldBeNil)
+				So(user.ID, ShouldEqual, userID)
+				So(user.Name, ShouldEqual, newName)
+				So(user.AvatarURL, ShouldEqual, newAvatarURL)
+				So(len(user.CustomData), ShouldEqual, 1)
+				So(user.CustomData["foo"], ShouldEqual, "goodbye")
+			})
+		})
+
+		Convey("and we can delete them", func() {
+			err := client.DeleteUser(ctx, userID)
+			So(err, ShouldBeNil)
+
+			Convey("and can't get them any more", func() {
+				_, err := client.GetUser(ctx, userID)
+				So(err.(*ErrorResponse).Status, ShouldEqual, 404)
+				So(
+					err.(*ErrorResponse).Info.(map[string]interface{})["error"],
+					ShouldEqual,
+					"services/chatkit/not_found/user_not_found",
+				)
+			})
+		})
+	})
+
+	Convey("We can create a batch of users", t, func() {
+		ids := []string{randomString(), randomString(), randomString(), randomString()}
+		sort.Strings(ids)
+
+		avatarURLs := make([]string, 4)
+		for i, id := range ids {
+			avatarURLs[i] = "https://avatars/" + id
+		}
+
+		err := client.CreateUsers(ctx, []CreateUserOptions{
+			CreateUserOptions{
+				ID:         ids[0],
+				Name:       "Alice",
+				AvatarURL:  &avatarURLs[0],
+				CustomData: json.RawMessage(`{"a":"aaa"}`),
+			},
+			CreateUserOptions{
+				ID:         ids[1],
+				Name:       "Bob",
+				AvatarURL:  &avatarURLs[1],
+				CustomData: json.RawMessage(`{"b":"bbb"}`),
+			},
+			CreateUserOptions{
+				ID:         ids[2],
+				Name:       "Carol",
+				AvatarURL:  &avatarURLs[2],
+				CustomData: json.RawMessage(`{"c":"ccc"}`),
+			},
+			CreateUserOptions{
+				ID:         ids[3],
+				Name:       "Dave",
+				AvatarURL:  &avatarURLs[3],
+				CustomData: json.RawMessage(`{"d":"ddd"}`),
+			},
+		})
+		So(err, ShouldBeNil)
+
+		Convey("and get them all by ID", func() {
+			users, err := client.GetUsersByID(ctx, ids)
+			So(err, ShouldBeNil)
+
+			sort.Slice(users, func(i, j int) bool {
+				return users[i].ID < users[j].ID
+			})
+
+			So(len(users), ShouldResemble, 4)
+
+			So(users[0].ID, ShouldEqual, ids[0])
+			So(users[0].Name, ShouldEqual, "Alice")
+			So(users[0].AvatarURL, ShouldEqual, avatarURLs[0])
+			So(len(users[0].CustomData), ShouldEqual, 1)
+			So(users[0].CustomData["a"], ShouldEqual, "aaa")
+
+			So(users[1].ID, ShouldEqual, ids[1])
+			So(users[1].Name, ShouldEqual, "Bob")
+			So(users[1].AvatarURL, ShouldEqual, avatarURLs[1])
+			So(len(users[1].CustomData), ShouldEqual, 1)
+			So(users[1].CustomData["b"], ShouldEqual, "bbb")
+
+			So(users[2].ID, ShouldEqual, ids[2])
+			So(users[2].Name, ShouldEqual, "Carol")
+			So(users[2].AvatarURL, ShouldEqual, avatarURLs[2])
+			So(len(users[2].CustomData), ShouldEqual, 1)
+			So(users[2].CustomData["c"], ShouldEqual, "ccc")
+
+			So(users[3].ID, ShouldEqual, ids[3])
+			So(users[3].Name, ShouldEqual, "Dave")
+			So(users[3].AvatarURL, ShouldEqual, avatarURLs[3])
+			So(len(users[3].CustomData), ShouldEqual, 1)
+			So(users[3].CustomData["d"], ShouldEqual, "ddd")
+		})
+
+		Convey("and get them all (paginated)", func() {
+			users, err := client.GetUsers(ctx, nil)
+			So(err, ShouldBeNil)
+
+			sort.Slice(users, func(i, j int) bool {
+				return users[i].ID < users[j].ID
+			})
+
+			So(users[0].ID, ShouldEqual, ids[0])
+			So(users[0].Name, ShouldEqual, "Alice")
+			So(users[0].AvatarURL, ShouldEqual, avatarURLs[0])
+			So(len(users[0].CustomData), ShouldEqual, 1)
+			So(users[0].CustomData["a"], ShouldEqual, "aaa")
+
+			So(users[1].ID, ShouldEqual, ids[1])
+			So(users[1].Name, ShouldEqual, "Bob")
+			So(users[1].AvatarURL, ShouldEqual, avatarURLs[1])
+			So(len(users[1].CustomData), ShouldEqual, 1)
+			So(users[1].CustomData["b"], ShouldEqual, "bbb")
+
+			So(users[2].ID, ShouldEqual, ids[2])
+			So(users[2].Name, ShouldEqual, "Carol")
+			So(users[2].AvatarURL, ShouldEqual, avatarURLs[2])
+			So(len(users[2].CustomData), ShouldEqual, 1)
+			So(users[2].CustomData["c"], ShouldEqual, "ccc")
+
+			So(users[3].ID, ShouldEqual, ids[3])
+			So(users[3].Name, ShouldEqual, "Dave")
+			So(users[3].AvatarURL, ShouldEqual, avatarURLs[3])
+			So(len(users[3].CustomData), ShouldEqual, 1)
+			So(users[3].CustomData["d"], ShouldEqual, "ddd")
 		})
 
 		Reset(func() {

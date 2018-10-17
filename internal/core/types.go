@@ -49,9 +49,9 @@ type CreateUserOptions struct {
 
 // UpdateUserOptions contains parameters to pass when updating a user.
 type UpdateUserOptions struct {
-	Name       *string                `json:"name,omitempty"`
-	AvatarUrl  *string                `json:"avatar_url,omitempty"`
-	CustomData map[string]interface{} `json:"custom_data,omitempty"`
+	Name       *string     `json:"name,omitempty"`
+	AvatarUrl  *string     `json:"avatar_url,omitempty"`
+	CustomData interface{} `json:"custom_data,omitempty"`
 }
 
 // CreateRoomOptions contains parameters to pass when creating a new room.
