@@ -25,9 +25,9 @@ func main() {
 			}
 
 			userID := "your-user-id"
-			authRes, err := client.Authenticator().Authenticate(chatkit.AuthenticationPayload{
+			authRes, err := client.Authenticate(chatkit.AuthenticatePayload{
 				GrantType: grantType,
-			}, chatkit.AuthenticationOptions{
+			}, chatkit.AuthenticateOptions{
 				UserID: &userID,
 			})
 			if err != nil {
