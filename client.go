@@ -22,11 +22,11 @@ import (
 
 const (
 	chatkitAuthorizerServiceName    = "chatkit_authorizer"
-	chatkitAuthorizerServiceVersion = "v1"
+	chatkitAuthorizerServiceVersion = "v2"
 	chatkitServiceName              = "chatkit"
 	chatkitServiceVersion           = "v2"
 	chatkitCursorsServiceName       = "chatkit_cursors"
-	chatkitCursorsServiceVersion    = "v1"
+	chatkitCursorsServiceVersion    = "v2"
 )
 
 // Public interface for the library.
@@ -107,18 +107,18 @@ func (c *Client) GetUserReadCursors(ctx context.Context, userID string) ([]Curso
 
 // SetReadCursor sets the cursor position for a room for a user.
 // The position points to the message ID of a message that was sent to that room.
-func (c *Client) SetReadCursor(ctx context.Context, userID string, roomID uint, position uint) error {
+func (c *Client) SetReadCursor(ctx context.Context, userID string, roomID string, position uint) error {
 	return c.cursorsService.SetReadCursor(ctx, userID, roomID, position)
 }
 
 // GetReadCursorsForRoom returns a list of cursors that have been set for a room.
 // This returns cursors irrespective of the user that set them.
-func (c *Client) GetReadCursorsForRoom(ctx context.Context, roomID uint) ([]Cursor, error) {
+func (c *Client) GetReadCursorsForRoom(ctx context.Context, roomID string) ([]Cursor, error) {
 	return c.cursorsService.GetReadCursorsForRoom(ctx, roomID)
 }
 
 // GetReadCursor returns a single cursor that was set by a user in a room.
-func (c *Client) GetReadCursor(ctx context.Context, userID string, roomID uint) (Cursor, error) {
+func (c *Client) GetReadCursor(ctx context.Context, userID string, roomID string) (Cursor, error) {
 	return c.cursorsService.GetReadCursor(ctx, userID, roomID)
 }
 
@@ -206,7 +206,7 @@ func (c *Client) AssignGlobalRoleToUser(ctx context.Context, userID string, role
 func (c *Client) AssignRoomRoleToUser(
 	ctx context.Context,
 	userID string,
-	roomID uint,
+	roomID string,
 	roleName string,
 ) error {
 	return c.authorizerService.AssignRoomRoleToUser(ctx, userID, roomID, roleName)
@@ -220,7 +220,7 @@ func (c *Client) RemoveGlobalRoleForUser(ctx context.Context, userID string) err
 
 // RemoveRoomRoleForUser removes a previously assigned room scoped role from a user.
 // Users can have multiple room roles associated with them, but only one role per room.
-func (c *Client) RemoveRoomRoleForUser(ctx context.Context, userID string, roomID uint) error {
+func (c *Client) RemoveRoomRoleForUser(ctx context.Context, userID string, roomID string) error {
 	return c.authorizerService.RemoveRoomRoleForUser(ctx, userID, roomID)
 }
 
@@ -269,7 +269,7 @@ func (c *Client) DeleteUser(ctx context.Context, userID string) error {
 }
 
 // GetRoom retrieves an existing room.
-func (c *Client) GetRoom(ctx context.Context, roomID uint) (Room, error) {
+func (c *Client) GetRoom(ctx context.Context, roomID string) (Room, error) {
 	return c.coreService.GetRoom(ctx, roomID)
 }
 
@@ -295,22 +295,22 @@ func (c *Client) CreateRoom(ctx context.Context, options CreateRoomOptions) (Roo
 }
 
 // UpdateRoom allows updating an existing room.
-func (c *Client) UpdateRoom(ctx context.Context, roomID uint, options UpdateRoomOptions) error {
+func (c *Client) UpdateRoom(ctx context.Context, roomID string, options UpdateRoomOptions) error {
 	return c.coreService.UpdateRoom(ctx, roomID, options)
 }
 
 // DeleteRoom deletes an existing room.
-func (c *Client) DeleteRoom(ctx context.Context, roomID uint) error {
+func (c *Client) DeleteRoom(ctx context.Context, roomID string) error {
 	return c.coreService.DeleteRoom(ctx, roomID)
 }
 
 // AddUsersToRoom adds new users to an exising room.
-func (c *Client) AddUsersToRoom(ctx context.Context, roomID uint, userIDs []string) error {
+func (c *Client) AddUsersToRoom(ctx context.Context, roomID string, userIDs []string) error {
 	return c.coreService.AddUsersToRoom(ctx, roomID, userIDs)
 }
 
 // RemoveUsersFromRoom removes existing members from a room.
-func (c *Client) RemoveUsersFromRoom(ctx context.Context, roomID uint, userIDs []string) error {
+func (c *Client) RemoveUsersFromRoom(ctx context.Context, roomID string, userIDs []string) error {
 	return c.coreService.RemoveUsersFromRoom(ctx, roomID, userIDs)
 }
 
@@ -322,7 +322,7 @@ func (c *Client) SendMessage(ctx context.Context, options SendMessageOptions) (u
 // GetRoomMessages retrieves messages previously sent to a room based on the options provided.
 func (c *Client) GetRoomMessages(
 	ctx context.Context,
-	roomID uint,
+	roomID string,
 	options GetRoomMessagesOptions,
 ) ([]Message, error) {
 	return c.coreService.GetRoomMessages(ctx, roomID, options)

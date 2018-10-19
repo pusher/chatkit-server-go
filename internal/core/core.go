@@ -29,19 +29,19 @@ type Service interface {
 	DeleteUser(ctx context.Context, userID string) error
 
 	// Rooms
-	GetRoom(ctx context.Context, roomID uint) (Room, error)
+	GetRoom(ctx context.Context, roomID string) (Room, error)
 	GetRooms(ctx context.Context, options GetRoomsOptions) ([]Room, error)
 	GetUserRooms(ctx context.Context, userID string) ([]Room, error)
 	GetUserJoinableRooms(ctx context.Context, userID string) ([]Room, error)
 	CreateRoom(ctx context.Context, options CreateRoomOptions) (Room, error)
-	UpdateRoom(ctx context.Context, roomID uint, options UpdateRoomOptions) error
-	DeleteRoom(ctx context.Context, roomID uint) error
-	AddUsersToRoom(ctx context.Context, roomID uint, userIDs []string) error
-	RemoveUsersFromRoom(ctx context.Context, roomID uint, userIds []string) error
+	UpdateRoom(ctx context.Context, roomID string, options UpdateRoomOptions) error
+	DeleteRoom(ctx context.Context, roomID string) error
+	AddUsersToRoom(ctx context.Context, roomID string, userIDs []string) error
+	RemoveUsersFromRoom(ctx context.Context, roomID string, userIds []string) error
 
 	// Messages
 	SendMessage(ctx context.Context, options SendMessageOptions) (uint, error)
-	GetRoomMessages(ctx context.Context, roomID uint, options GetRoomMessagesOptions) ([]Message, error)
+	GetRoomMessages(ctx context.Context, roomID string, options GetRoomMessagesOptions) ([]Message, error)
 	DeleteMessage(ctx context.Context, messageID uint) error
 
 	// Generic requests
@@ -235,10 +235,10 @@ func (cs *coreService) DeleteUser(ctx context.Context, userID string) error {
 }
 
 // GetRoom retrieves a room with the given id.
-func (cs *coreService) GetRoom(ctx context.Context, roomID uint) (Room, error) {
+func (cs *coreService) GetRoom(ctx context.Context, roomID string) (Room, error) {
 	response, err := common.RequestWithSuToken(cs.underlyingInstance, ctx, client.RequestOptions{
 		Method: http.MethodGet,
-		Path:   fmt.Sprintf("/rooms/%d", roomID),
+		Path:   fmt.Sprintf("/rooms/%s", roomID),
 	})
 	if err != nil {
 		return Room{}, err
@@ -258,7 +258,7 @@ func (cs *coreService) GetRoom(ctx context.Context, roomID uint) (Room, error) {
 func (cs *coreService) GetRooms(ctx context.Context, options GetRoomsOptions) ([]Room, error) {
 	queryParams := url.Values{}
 	if options.FromID != nil {
-		queryParams.Add("from_id", strconv.Itoa(int(*options.FromID)))
+		queryParams.Add("from_id", *options.FromID)
 	}
 
 	strIncludePrivate := "false"
@@ -370,7 +370,7 @@ func (cs *coreService) CreateRoom(ctx context.Context, options CreateRoomOptions
 }
 
 // UpdateRoom updates an existing room based on the options provided.
-func (cs *coreService) UpdateRoom(ctx context.Context, roomID uint, options UpdateRoomOptions) error {
+func (cs *coreService) UpdateRoom(ctx context.Context, roomID string, options UpdateRoomOptions) error {
 	requestBody, err := common.CreateRequestBody(&options)
 	if err != nil {
 		return err
@@ -378,7 +378,7 @@ func (cs *coreService) UpdateRoom(ctx context.Context, roomID uint, options Upda
 
 	response, err := common.RequestWithSuToken(cs.underlyingInstance, ctx, client.RequestOptions{
 		Method: http.MethodPut,
-		Path:   fmt.Sprintf("/rooms/%d", roomID),
+		Path:   fmt.Sprintf("/rooms/%s", roomID),
 		Body:   requestBody,
 	})
 	if err != nil {
@@ -390,10 +390,10 @@ func (cs *coreService) UpdateRoom(ctx context.Context, roomID uint, options Upda
 }
 
 // DeleteRoom deletes an existing room.
-func (cs *coreService) DeleteRoom(ctx context.Context, roomID uint) error {
+func (cs *coreService) DeleteRoom(ctx context.Context, roomID string) error {
 	response, err := common.RequestWithSuToken(cs.underlyingInstance, ctx, client.RequestOptions{
 		Method: http.MethodDelete,
-		Path:   fmt.Sprintf("/rooms/%d", roomID),
+		Path:   fmt.Sprintf("/rooms/%s", roomID),
 	})
 	if err != nil {
 		return err
@@ -405,7 +405,7 @@ func (cs *coreService) DeleteRoom(ctx context.Context, roomID uint) error {
 
 // AddUsersToRoom adds users to an existing room.
 // The maximum number of users that can be added in a single request is 10.
-func (cs *coreService) AddUsersToRoom(ctx context.Context, roomID uint, userIDs []string) error {
+func (cs *coreService) AddUsersToRoom(ctx context.Context, roomID string, userIDs []string) error {
 	if userIDs == nil || len(userIDs) == 0 {
 		return errors.New("You must provide a list of IDs of the users you want to add to the room")
 	}
@@ -417,7 +417,7 @@ func (cs *coreService) AddUsersToRoom(ctx context.Context, roomID uint, userIDs 
 
 	response, err := common.RequestWithSuToken(cs.underlyingInstance, ctx, client.RequestOptions{
 		Method: http.MethodPut,
-		Path:   fmt.Sprintf("/rooms/%d/users/add", roomID),
+		Path:   fmt.Sprintf("/rooms/%s/users/add", roomID),
 		Body:   requestBody,
 	})
 	if err != nil {
@@ -430,7 +430,7 @@ func (cs *coreService) AddUsersToRoom(ctx context.Context, roomID uint, userIDs 
 
 // RemoveUsersFromRoom removes a list of users from the room.
 // The maximum number of users that can be removed in a single request is 10.
-func (cs *coreService) RemoveUsersFromRoom(ctx context.Context, roomID uint, userIDs []string) error {
+func (cs *coreService) RemoveUsersFromRoom(ctx context.Context, roomID string, userIDs []string) error {
 	if userIDs == nil || len(userIDs) == 0 {
 		return errors.New("You must provide a list of IDs of the users you want to remove from the room")
 	}
@@ -442,7 +442,7 @@ func (cs *coreService) RemoveUsersFromRoom(ctx context.Context, roomID uint, use
 
 	response, err := common.RequestWithSuToken(cs.underlyingInstance, ctx, client.RequestOptions{
 		Method: http.MethodPut,
-		Path:   fmt.Sprintf("/rooms/%d/users/remove", roomID),
+		Path:   fmt.Sprintf("/rooms/%s/users/remove", roomID),
 		Body:   requestBody,
 	})
 	if err != nil {
@@ -474,7 +474,7 @@ func (cs *coreService) SendMessage(ctx context.Context, options SendMessageOptio
 		options.SenderID,
 		client.RequestOptions{
 			Method: http.MethodPost,
-			Path:   fmt.Sprintf("/rooms/%d/messages", options.RoomID),
+			Path:   fmt.Sprintf("/rooms/%s/messages", options.RoomID),
 			Body:   requestBody,
 		})
 	if err != nil {
@@ -508,7 +508,7 @@ func (cs *coreService) DeleteMessage(ctx context.Context, messageID uint) error 
 // GetRoomMessages fetches messages sent to a room based on the passed in options.
 func (cs *coreService) GetRoomMessages(
 	ctx context.Context,
-	roomID uint,
+	roomID string,
 	options GetRoomMessagesOptions,
 ) ([]Message, error) {
 	queryParams := url.Values{}
@@ -526,7 +526,7 @@ func (cs *coreService) GetRoomMessages(
 
 	response, err := common.RequestWithSuToken(cs.underlyingInstance, ctx, client.RequestOptions{
 		Method:      http.MethodGet,
-		Path:        fmt.Sprintf("/rooms/%d/messages", roomID),
+		Path:        fmt.Sprintf("/rooms/%s/messages", roomID),
 		QueryParams: &queryParams,
 	})
 	if err != nil {

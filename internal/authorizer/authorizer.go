@@ -11,7 +11,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"strconv"
 
 	"github.com/pusher/chatkit-server-go/internal/common"
 
@@ -50,9 +49,9 @@ type Service interface {
 	// User roles
 	GetUserRoles(ctx context.Context, userID string) ([]Role, error)
 	AssignGlobalRoleToUser(ctx context.Context, userID string, roleName string) error
-	AssignRoomRoleToUser(ctx context.Context, userID string, roomID uint, roleName string) error
+	AssignRoomRoleToUser(ctx context.Context, userID string, roomID string, roleName string) error
 	RemoveGlobalRoleForUser(ctx context.Context, userID string) error
-	RemoveRoomRoleForUser(ctx context.Context, userID string, roomID uint) error
+	RemoveRoomRoleForUser(ctx context.Context, userID string, roomID string) error
 
 	// Generic requests
 	Request(ctx context.Context, options client.RequestOptions) (*http.Response, error)
@@ -284,7 +283,7 @@ func (as *authorizerService) AssignGlobalRoleToUser(
 func (as *authorizerService) AssignRoomRoleToUser(
 	ctx context.Context,
 	userID string,
-	roomID uint,
+	roomID string,
 	roleName string,
 ) error {
 	return as.assignRoleToUser(ctx, userID, roleName, &roomID)
@@ -295,7 +294,7 @@ func (as *authorizerService) assignRoleToUser(
 	ctx context.Context,
 	userID string,
 	roleName string,
-	roomID *uint,
+	roomID *string,
 ) error {
 	if userID == "" {
 		return errors.New("You must provide the ID of the user you want to assign a role to")
@@ -334,7 +333,7 @@ func (as *authorizerService) RemoveGlobalRoleForUser(ctx context.Context, userID
 func (as *authorizerService) RemoveRoomRoleForUser(
 	ctx context.Context,
 	userID string,
-	roomID uint,
+	roomID string,
 ) error {
 	return as.removeRoleForUser(ctx, userID, &roomID)
 }
@@ -343,7 +342,7 @@ func (as *authorizerService) RemoveRoomRoleForUser(
 func (as *authorizerService) removeRoleForUser(
 	ctx context.Context,
 	userID string,
-	roomID *uint,
+	roomID *string,
 ) error {
 	if userID == "" {
 		return errors.New("You must provide the ID of the user you want to remove a role for")
@@ -351,7 +350,7 @@ func (as *authorizerService) removeRoleForUser(
 
 	queryParams := url.Values{}
 	if roomID != nil {
-		queryParams.Add("room_id", strconv.Itoa(int(*roomID)))
+		queryParams.Add("room_id", *roomID)
 	}
 
 	response, err := common.RequestWithSuToken(as.underlyingInstance, ctx, client.RequestOptions{

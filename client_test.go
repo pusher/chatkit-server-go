@@ -257,7 +257,7 @@ func TestCursors(t *testing.T) {
 				// Get back last set cursor
 				response, err := client.CursorsRequest(context.Background(), RequestOptions{
 					Method: http.MethodGet,
-					Path:   fmt.Sprintf("/cursors/0/rooms/%d/users/%s", room.ID, userID),
+					Path:   fmt.Sprintf("/cursors/0/rooms/%s/users/%s", room.ID, userID),
 					Jwt:    &tokenWithExpiry.Token,
 				})
 				So(err, ShouldBeNil)
@@ -744,9 +744,9 @@ func TestRooms(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(len(rooms), ShouldEqual, 2)
 				So(
-					[]uint{rooms[0].ID, rooms[1].ID},
+					[]string{rooms[0].ID, rooms[1].ID},
 					shouldResembleUpToReordering,
-					[]uint{room1.ID, room2.ID},
+					[]string{room1.ID, room2.ID},
 				)
 			})
 

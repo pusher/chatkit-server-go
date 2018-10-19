@@ -14,7 +14,7 @@ type User struct {
 
 // Room represents a chatkit room.
 type Room struct {
-	ID            uint      `json:"id"`                        // ID assigned to a room
+	ID            string    `json:"id"`                        // ID assigned to a room
 	CreatedByID   string    `json:"created_by_id"`             // User ID that created the room
 	Name          string    `json:"name"`                      // Name assigned to the room
 	Private       bool      `json:"private"`                   // Indicates if room is private or not
@@ -27,7 +27,7 @@ type Room struct {
 type Message struct {
 	ID        uint      `json:"id"`         // Message ID
 	UserID    string    `json:"user_id"`    // User that sent the message
-	RoomID    uint      `json:"room_id"`    // Room the message was sent to
+	RoomID    string    `json:"room_id"`    // Room the message was sent to
 	Text      string    `json:"text"`       // Content of the message
 	CreatedAt time.Time `json:"created_at"` // Creation timestamp
 	UpdatedAt time.Time `json:"updated_at"` // Updation timestamp
@@ -65,8 +65,8 @@ type CreateRoomOptions struct {
 
 // GetRoomsOptions contains parameters to pass to fetch rooms.
 type GetRoomsOptions struct {
-	FromID         *uint `json:"from_id,omitempty"`
-	IncludePrivate bool  `json:"include_private"`
+	FromID         *string `json:"from_id,omitempty"`
+	IncludePrivate bool    `json:"include_private"`
 }
 
 // UpdateRoomOptions contains parameters to pass when updating a room.
@@ -77,7 +77,7 @@ type UpdateRoomOptions struct {
 
 // SendMessageOptions contains parameters to pass when sending a new message.
 type SendMessageOptions struct {
-	RoomID   uint
+	RoomID   string
 	Text     string
 	SenderID string
 }
