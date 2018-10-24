@@ -49,8 +49,8 @@ type AssignRoleOptions struct {
 
 // UserRole represents the type of role associated with a user.
 type UserRole struct {
-	Name   string `json:"name"`              // Name of the role
-	RoomID *uint  `json:"room_id,omitempty"` // Optional room id. If empty, the scope is global
+	Name   string  `json:"name"`              // Name of the role
+	RoomID *string `json:"room_id,omitempty"` // Optional room id. If empty, the scope is global
 }
 
 // UpdateRolePermissionsOptions contains permissions to add/remove

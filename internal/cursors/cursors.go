@@ -18,9 +18,9 @@ const readCursorType = 0
 // Exposes methods to interact with the cursors API.
 type Service interface {
 	GetUserReadCursors(ctx context.Context, userID string) ([]Cursor, error)
-	SetReadCursor(ctx context.Context, userID string, roomID uint, position uint) error
-	GetReadCursorsForRoom(ctx context.Context, roomID uint) ([]Cursor, error)
-	GetReadCursor(ctx context.Context, userID string, roomID uint) (Cursor, error)
+	SetReadCursor(ctx context.Context, userID string, roomID string, position uint) error
+	GetReadCursorsForRoom(ctx context.Context, roomID string) ([]Cursor, error)
+	GetReadCursor(ctx context.Context, userID string, roomID string) (Cursor, error)
 
 	// Generic requests
 	Request(ctx context.Context, options client.RequestOptions) (*http.Response, error)
@@ -66,7 +66,7 @@ func (cs *cursorsService) GetUserReadCursors(ctx context.Context, userID string)
 func (cs *cursorsService) SetReadCursor(
 	ctx context.Context,
 	userID string,
-	roomID uint,
+	roomID string,
 	position uint,
 ) error {
 	if userID == "" {
@@ -81,7 +81,7 @@ func (cs *cursorsService) SetReadCursor(
 	response, err := common.RequestWithSuToken(cs.underlyingInstance, ctx, client.RequestOptions{
 		Method: http.MethodPut,
 		Path: fmt.Sprintf(
-			"/cursors/%d/rooms/%d/users/%s",
+			"/cursors/%d/rooms/%s/users/%s",
 			readCursorType,
 			roomID,
 			userID,
@@ -97,10 +97,10 @@ func (cs *cursorsService) SetReadCursor(
 }
 
 // GetReadCursorsForRoom retrieves read cursors for a given room.
-func (cs *cursorsService) GetReadCursorsForRoom(ctx context.Context, roomID uint) ([]Cursor, error) {
+func (cs *cursorsService) GetReadCursorsForRoom(ctx context.Context, roomID string) ([]Cursor, error) {
 	response, err := common.RequestWithSuToken(cs.underlyingInstance, ctx, client.RequestOptions{
 		Method: http.MethodGet,
-		Path:   fmt.Sprintf("/cursors/%d/rooms/%d", readCursorType, roomID),
+		Path:   fmt.Sprintf("/cursors/%d/rooms/%s", readCursorType, roomID),
 	})
 	if err != nil {
 		return nil, err
@@ -120,11 +120,11 @@ func (cs *cursorsService) GetReadCursorsForRoom(ctx context.Context, roomID uint
 func (cs *cursorsService) GetReadCursor(
 	ctx context.Context,
 	userID string,
-	roomID uint,
+	roomID string,
 ) (Cursor, error) {
 	response, err := common.RequestWithSuToken(cs.underlyingInstance, ctx, client.RequestOptions{
 		Method: http.MethodGet,
-		Path:   fmt.Sprintf("/cursors/%d/rooms/%d/users/%s", readCursorType, roomID, userID),
+		Path:   fmt.Sprintf("/cursors/%d/rooms/%s/users/%s", readCursorType, roomID, userID),
 	})
 	if err != nil {
 		return Cursor{}, nil
