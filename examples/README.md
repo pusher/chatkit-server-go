@@ -2,6 +2,7 @@
 
 ## Run it
 
-    $ export CHATKIT_INSTANCE_LOCATOR="<your instance_locator here>"
-    $ export CHATKIT_KEY="<your key here>"
-    $ go run example.go
+Substitute `your:instance:locator` and `your:key` for a valid instance locator
+and key, and
+
+    $ go run token-provider/server.go
