@@ -44,14 +44,14 @@ type config struct {
 
 // GetConfig retrieves instance specific config from the ENV.
 func getConfig() (*config, error) {
-	instanceLocator := os.Getenv("TEST_INSTANCE_LOCATOR")
+	instanceLocator := os.Getenv("CHATKIT_INSTANCE_LOCATOR")
 	if instanceLocator == "" {
-		return nil, errors.New("TEST_INSTANCE_LOCATOR not set")
+		return nil, errors.New("CHATKIT_INSTANCE_LOCATOR not set")
 	}
 
-	key := os.Getenv("TEST_KEY")
+	key := os.Getenv("CHATKIT_INSTANCE_KEY")
 	if key == "" {
-		return nil, errors.New("TEST_KEY not set")
+		return nil, errors.New("CHATKIT_INSTANCE_KEY not set")
 	}
 
 	return &config{instanceLocator, key}, nil
