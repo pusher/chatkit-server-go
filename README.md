@@ -1,4 +1,4 @@
-# chatkit-server-go [![godoc-badge][]][GoDoc]
+# chatkit-server-go [![godoc-badge][]][GoDoc] [![Build Status](https://travis-ci.org/pusher/chatkit-server-go.svg?branch=master)](https://travis-ci.org/pusher/chatkit-server-go)
 
 Golang server SDK for [Pusher Chatkit][].
 
@@ -10,6 +10,10 @@ Please report any bugs or feature requests via a GitHub issue on this repo.
 ## Installation
 
     $ go get github.com/pusher/chatkit-server-go
+
+## Go versions
+
+This library requires Go versions >=1.9.
 
 ## Getting started
 
@@ -39,7 +43,7 @@ please refer to the [CHANGELOG][].
 
 ## Tests
 
-To run the tests, a Chatkit instance is required along with its credentials. `TEST_INSTANCE_LOCATOR` and `TEST_KEY` are required
+To run the tests, a Chatkit instance is required along with its credentials. `CHATKIT_INSTANCE_LOCATOR` and `CHATKIT_INSTANCE_KEY` are required
 to be set as environment variables. Note that the tests run against an actual cluster and are to be treated as integration tests.
 
     $ go test -v
