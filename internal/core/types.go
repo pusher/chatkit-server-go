@@ -14,13 +14,14 @@ type User struct {
 
 // Room represents a chatkit room.
 type Room struct {
-	ID            string    `json:"id"`                        // ID assigned to a room
-	CreatedByID   string    `json:"created_by_id"`             // User ID that created the room
-	Name          string    `json:"name"`                      // Name assigned to the room
-	Private       bool      `json:"private"`                   // Indicates if room is private or not
-	MemberUserIDs []string  `json:"member_user_ids,omitempty"` // List of user id's in the room
-	CreatedAt     time.Time `json:"created_at"`                // Creation timestamp
-	UpdatedAt     time.Time `json:"updated_at"`                // Updation timestamp
+	ID            string      `json:"id"`                        // ID assigned to a room
+	CreatedByID   string      `json:"created_by_id"`             // User ID that created the room
+	Name          string      `json:"name"`                      // Name assigned to the room
+	Private       bool        `json:"private"`                   // Indicates if room is private or not
+	MemberUserIDs []string    `json:"member_user_ids,omitempty"` // List of user id's in the room
+	CustomData    interface{} `json:"custom_data,omitempty"`     // Custom data that can be added to rooms
+	CreatedAt     time.Time   `json:"created_at"`                // Creation timestamp
+	UpdatedAt     time.Time   `json:"updated_at"`                // Updation timestamp
 }
 
 // Message represents a message sent to a chatkit room.
@@ -56,11 +57,11 @@ type UpdateUserOptions struct {
 
 // CreateRoomOptions contains parameters to pass when creating a new room.
 type CreateRoomOptions struct {
-	Name    string   `json:"name"`
-	Private bool     `json:"private"`
-	UserIDs []string `json:"user_ids,omitempty"` // User ID's to be added to the room during creation
-
-	CreatorID string
+	Name       string      `json:"name"`
+	Private    bool        `json:"private"`
+	UserIDs    []string    `json:"user_ids,omitempty"` // User ID's to be added to the room during creation
+	CustomData interface{} `json:"custom_data,omitempty"`
+	CreatorID  string
 }
 
 // GetRoomsOptions contains parameters to pass to fetch rooms.
@@ -71,8 +72,9 @@ type GetRoomsOptions struct {
 
 // UpdateRoomOptions contains parameters to pass when updating a room.
 type UpdateRoomOptions struct {
-	Name    *string `json:"name,omitempty"`
-	Private *bool   `json:"private,omitempty"`
+	Name       *string     `json:"name,omitempty"`
+	Private    *bool       `json:"private,omitempty"`
+	CustomData interface{} `json:"custom_data,omitempty"`
 }
 
 // SendMessageOptions contains parameters to pass when sending a new message.
