@@ -658,6 +658,7 @@ func TestRooms(t *testing.T) {
 				Private:   true,
 				UserIDs:   []string{aliceID, bobID},
 				CreatorID: aliceID,
+				CustomData: map[string]interface{}{"foo": "bar"},
 			})
 			So(err, ShouldBeNil)
 			So(room.Name, ShouldEqual, roomName)
@@ -671,12 +672,14 @@ func TestRooms(t *testing.T) {
 				So(r.Name, ShouldEqual, roomName)
 				So(r.Private, ShouldEqual, true)
 				So(r.MemberUserIDs, shouldResembleUpToReordering, []string{aliceID, bobID})
+				So(r.CustomData, ShouldResemble, map[string]interface{}{"foo": "bar"})
 			})
 
 			Convey("and update it", func() {
 				newRoomName := randomString()
 				err := client.UpdateRoom(ctx, room.ID, UpdateRoomOptions{
 					Name: &newRoomName,
+					CustomData: map[string]interface{}{"foo": "baz"},
 				})
 				So(err, ShouldBeNil)
 
@@ -687,6 +690,7 @@ func TestRooms(t *testing.T) {
 					So(r.Name, ShouldEqual, newRoomName)
 					So(r.Private, ShouldEqual, true)
 					So(r.MemberUserIDs, shouldResembleUpToReordering, []string{aliceID, bobID})
+					So(r.CustomData, ShouldResemble, map[string]interface{}{"foo": "baz"})
 				})
 			})
 
