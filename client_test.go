@@ -846,5 +846,9 @@ func TestMessages(t *testing.T) {
 				So(messagesPage2[1].Text, ShouldEqual, "one")
 			})
 		})
+
+		Reset(func() {
+			deleteAllResources(client)
+		})
 	})
 }
