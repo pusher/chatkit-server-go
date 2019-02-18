@@ -323,6 +323,14 @@ func (c *Client) SendMessage(ctx context.Context, options SendMessageOptions) (u
 	return c.coreServiceV2.SendMessage(ctx, options)
 }
 
+// SendMultipartMessage publishes a new multipart message to a room.
+func (c *Client) SendMultipartMessage(
+	ctx context.Context,
+	options SendMultipartMessageOptions,
+) (uint, error) {
+	return c.coreServiceV3.SendMultipartMessage(ctx, options)
+}
+
 // GetRoomMessages retrieves messages previously sent to a room based on the options provided.
 func (c *Client) GetRoomMessages(
 	ctx context.Context,

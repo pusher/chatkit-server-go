@@ -41,6 +41,7 @@ type Service interface {
 
 	// Messages
 	SendMessage(ctx context.Context, options SendMessageOptions) (uint, error)
+	SendMultipartMessage(ctx context.Context, options SendMultipartMessageOptions) (uint, error)
 	GetRoomMessages(ctx context.Context, roomID string, options GetRoomMessagesOptions) ([]Message, error)
 	DeleteMessage(ctx context.Context, messageID uint) error
 
@@ -464,6 +465,47 @@ func (cs *coreService) SendMessage(ctx context.Context, options SendMessageOptio
 	}
 
 	requestBody, err := common.CreateRequestBody(map[string]string{"text": options.Text})
+	if err != nil {
+		return 0, err
+	}
+
+	response, err := common.RequestWithUserToken(
+		cs.underlyingInstance,
+		ctx,
+		options.SenderID,
+		client.RequestOptions{
+			Method: http.MethodPost,
+			Path:   fmt.Sprintf("/rooms/%s/messages", options.RoomID),
+			Body:   requestBody,
+		})
+	if err != nil {
+		return 0, err
+	}
+	defer response.Body.Close()
+
+	var messageResponse map[string]uint
+	err = common.DecodeResponseBody(response.Body, &messageResponse)
+	if err != nil {
+		return 0, err
+	}
+
+	return messageResponse["message_id"], nil
+}
+
+// SendMultipartMessage publishes a multipart message to a room.
+func (cs *coreService) SendMultipartMessage(
+	ctx context.Context,
+	options SendMultipartMessageOptions,
+) (uint, error) {
+	if len(options.Parts) == 0 {
+		return 0, errors.New("You must provide at least one message part")
+	}
+
+	if options.SenderID == "" {
+		return 0, errors.New("You must provide the ID of the user sending the message")
+	}
+
+	requestBody, err := common.CreateRequestBody(map[string]interface{}{"parts": options.Parts})
 	if err != nil {
 		return 0, err
 	}

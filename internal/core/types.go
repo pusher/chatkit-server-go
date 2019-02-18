@@ -84,6 +84,31 @@ type SendMessageOptions struct {
 	SenderID string
 }
 
+// SendMultipartMessageOptions contains parameters to pass when sending a new message.
+type SendMultipartMessageOptions struct {
+	RoomID   string
+	SenderID string
+	Parts    []NewPart
+}
+
+type NewPart interface {
+	isNewPart()
+}
+
+type NewInlinePart struct {
+	Type    string `json:"type"`
+	Content string `json:"content"`
+}
+
+func (p NewInlinePart) isNewPart() {}
+
+type NewURLPart struct {
+	Type string `json:"type"`
+	URL  string `json:"url"`
+}
+
+func (p NewURLPart) isNewPart() {}
+
 // GetRoomMessagesOptions contains parameters to pass when fetching messages from a room.
 type GetRoomMessagesOptions struct {
 	InitialID *uint   // Starting ID of messages to retrieve

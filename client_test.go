@@ -817,11 +817,12 @@ func TestMessages(t *testing.T) {
 			})
 			So(err, ShouldBeNil)
 
-			messageID3, err := client.SendMessage(ctx, SendMessageOptions{
+			messageID3, err := client.SendMultipartMessage(ctx, SendMultipartMessageOptions{
 				RoomID:   room.ID,
-				Text:     "three",
 				SenderID: userID,
-			})
+				Parts: []NewPart{
+					NewInlinePart{Type: "text/plain", Content: "three"},
+				}})
 			So(err, ShouldBeNil)
 
 			messageID4, err := client.SendMessage(ctx, SendMessageOptions{
@@ -853,6 +854,37 @@ func TestMessages(t *testing.T) {
 				So(messagesPage2[1].ID, ShouldEqual, messageID1)
 				So(messagesPage2[1].Text, ShouldEqual, "one")
 			})
+		})
+
+		Convey("we can publish a multipart messages", func() {
+			messageID, err := client.SendMultipartMessage(ctx, SendMultipartMessageOptions{
+				RoomID:   room.ID,
+				SenderID: userID,
+				Parts: []NewPart{
+					NewInlinePart{Type: "text/plain", Content: "see attached"},
+					NewURLPart{Type: "audio/ogg", URL: "https://example.com/audio.ogg"},
+					NewURLPart{Type: "audio/ogg", URL: "https://example.com/audio2.ogg"},
+					// TODO replace second URL part with an attachment part
+				},
+			})
+			So(err, ShouldBeNil)
+
+			Convey("and fetch it (v2)", func() {
+				limit := uint(1)
+				messages, err := client.GetRoomMessages(ctx, room.ID, GetRoomMessagesOptions{
+					Limit: &limit,
+				})
+				So(err, ShouldBeNil)
+				So(len(messages), ShouldEqual, 1)
+				So(messages[0].ID, ShouldEqual, messageID)
+				So(
+					messages[0].Text,
+					ShouldEqual,
+					"You have received a message which can't be represented in this version of the app. You will need to upgrade to read it.",
+				)
+			})
+
+			// TODO fetch v3
 		})
 
 		Reset(func() {
