@@ -328,13 +328,13 @@ func TestAuthorizer(t *testing.T) {
 		Convey("it should be possible to retreive permissions for a global scoped role", func() {
 			permissions, err := client.GetPermissionsForGlobalRole(context.Background(), globalRoleName)
 			So(err, ShouldBeNil)
-			So(permissions, ShouldResemble, globalPermissions)
+			So(permissions, shouldResembleUpToReordering, globalPermissions)
 		})
 
 		Convey("it should be possible to retrieve permissions for a room scoped role", func() {
 			permissions, err := client.GetPermissionsForRoomRole(context.Background(), roomRoleName)
 			So(err, ShouldBeNil)
-			So(permissions, ShouldResemble, roomPermissions)
+			So(permissions, shouldResembleUpToReordering, roomPermissions)
 		})
 
 		Convey("it should be possible to update permissions for a globally scoped role", func() {
@@ -350,7 +350,11 @@ func TestAuthorizer(t *testing.T) {
 
 			permissions, err := client.GetPermissionsForGlobalRole(context.Background(), globalRoleName)
 			So(err, ShouldBeNil)
-			So(permissions, ShouldResemble, []string{"message:create", "cursors:read:set", "cursors:read:get"})
+			So(
+				permissions,
+				shouldResembleUpToReordering,
+				[]string{"message:create", "cursors:read:set", "cursors:read:get"},
+			)
 		})
 
 		Convey("it should be possible to update permissions for a room scoped role", func() {
@@ -366,7 +370,11 @@ func TestAuthorizer(t *testing.T) {
 
 			permissions, err := client.GetPermissionsForRoomRole(context.Background(), roomRoleName)
 			So(err, ShouldBeNil)
-			So(permissions, ShouldResemble, []string{"cursors:read:set", "cursors:read:get"})
+			So(
+				permissions,
+				shouldResembleUpToReordering,
+				[]string{"cursors:read:set", "cursors:read:get"},
+			)
 		})
 
 		Convey("on creating a user, a room and a global and room role", func() {
@@ -561,7 +569,7 @@ func TestUsers(t *testing.T) {
 				return users[i].ID < users[j].ID
 			})
 
-			So(len(users), ShouldResemble, 4)
+			So(len(users), ShouldEqual, 4)
 
 			So(users[0].ID, ShouldEqual, ids[0])
 			So(users[0].Name, ShouldEqual, "Alice")
@@ -654,10 +662,10 @@ func TestRooms(t *testing.T) {
 			roomName := randomString()
 
 			room, err := client.CreateRoom(ctx, CreateRoomOptions{
-				Name:      roomName,
-				Private:   true,
-				UserIDs:   []string{aliceID, bobID},
-				CreatorID: aliceID,
+				Name:       roomName,
+				Private:    true,
+				UserIDs:    []string{aliceID, bobID},
+				CreatorID:  aliceID,
 				CustomData: map[string]interface{}{"foo": "bar"},
 			})
 			So(err, ShouldBeNil)
@@ -678,7 +686,7 @@ func TestRooms(t *testing.T) {
 			Convey("and update it", func() {
 				newRoomName := randomString()
 				err := client.UpdateRoom(ctx, room.ID, UpdateRoomOptions{
-					Name: &newRoomName,
+					Name:       &newRoomName,
 					CustomData: map[string]interface{}{"foo": "baz"},
 				})
 				So(err, ShouldBeNil)
