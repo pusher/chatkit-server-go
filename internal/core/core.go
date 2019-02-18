@@ -519,7 +519,8 @@ func (cs *coreService) SendMultipartMessage(
 			Method: http.MethodPost,
 			Path:   fmt.Sprintf("/rooms/%s/messages", options.RoomID),
 			Body:   requestBody,
-		})
+		},
+	)
 	if err != nil {
 		return 0, err
 	}
