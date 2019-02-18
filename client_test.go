@@ -825,7 +825,7 @@ func TestMessages(t *testing.T) {
 				}})
 			So(err, ShouldBeNil)
 
-			messageID4, err := client.SendMessage(ctx, SendMessageOptions{
+			messageID4, err := client.SendSimpleMessage(ctx, SendSimpleMessageOptions{
 				RoomID:   room.ID,
 				Text:     "four",
 				SenderID: userID,

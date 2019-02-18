@@ -32,6 +32,7 @@ type (
 	UpdateRoomOptions           = core.UpdateRoomOptions
 	SendMessageOptions          = core.SendMessageOptions
 	SendMultipartMessageOptions = core.SendMultipartMessageOptions
+	SendSimpleMessageOptions    = core.SendSimpleMessageOptions
 	NewPart                     = core.NewPart
 	NewInlinePart               = core.NewInlinePart
 	NewURLPart                  = core.NewURLPart

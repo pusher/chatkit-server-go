@@ -42,6 +42,7 @@ type Service interface {
 	// Messages
 	SendMessage(ctx context.Context, options SendMessageOptions) (uint, error)
 	SendMultipartMessage(ctx context.Context, options SendMultipartMessageOptions) (uint, error)
+	SendSimpleMessage(ctx context.Context, options SendSimpleMessageOptions) (uint, error)
 	GetRoomMessages(ctx context.Context, roomID string, options GetRoomMessagesOptions) ([]Message, error)
 	DeleteMessage(ctx context.Context, messageID uint) error
 
@@ -531,6 +532,18 @@ func (cs *coreService) SendMultipartMessage(
 	}
 
 	return messageResponse["message_id"], nil
+}
+
+// SendSimpleMessage publishes a simple message to a room.
+func (cs *coreService) SendSimpleMessage(
+	ctx context.Context,
+	options SendSimpleMessageOptions,
+) (uint, error) {
+	return cs.SendMultipartMessage(ctx, SendMultipartMessageOptions{
+		RoomID:   options.RoomID,
+		SenderID: options.SenderID,
+		Parts:    []NewPart{NewInlinePart{Type: "text/plain", Content: options.Text}},
+	})
 }
 
 // DeleteMessage deletes a previously sent message.

@@ -331,6 +331,14 @@ func (c *Client) SendMultipartMessage(
 	return c.coreServiceV3.SendMultipartMessage(ctx, options)
 }
 
+// SendSimpleMessage publishes a new simple multipart message to a room.
+func (c *Client) SendSimpleMessage(
+	ctx context.Context,
+	options SendSimpleMessageOptions,
+) (uint, error) {
+	return c.coreServiceV3.SendSimpleMessage(ctx, options)
+}
+
 // GetRoomMessages retrieves messages previously sent to a room based on the options provided.
 func (c *Client) GetRoomMessages(
 	ctx context.Context,

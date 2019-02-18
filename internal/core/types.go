@@ -78,17 +78,20 @@ type UpdateRoomOptions struct {
 }
 
 // SendMessageOptions contains parameters to pass when sending a new message.
-type SendMessageOptions struct {
-	RoomID   string
-	Text     string
-	SenderID string
-}
+type SendMessageOptions = SendSimpleMessageOptions
 
 // SendMultipartMessageOptions contains parameters to pass when sending a new message.
 type SendMultipartMessageOptions struct {
 	RoomID   string
 	SenderID string
 	Parts    []NewPart
+}
+
+// SendSimpleMessageOptions contains parameters to pass when sending a new message.
+type SendSimpleMessageOptions struct {
+	RoomID   string
+	Text     string
+	SenderID string
 }
 
 type NewPart interface {
