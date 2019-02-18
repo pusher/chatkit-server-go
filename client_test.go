@@ -706,14 +706,10 @@ func TestRooms(t *testing.T) {
 				err := client.DeleteRoom(ctx, room.ID)
 				So(err, ShouldBeNil)
 
-				Convey("and can't get it any more", func() {
-					_, err := client.GetRoom(ctx, room.ID)
-					So(err.(*ErrorResponse).Status, ShouldEqual, 404)
-					So(
-						err.(*ErrorResponse).Info.(map[string]interface{})["error"],
-						ShouldEqual,
-						"services/chatkit/not_found/room_not_found",
-					)
+				Convey("and can't get it any more (via GetRooms)", func() {
+					rooms, err := client.GetRooms(ctx, GetRoomsOptions{})
+					So(err, ShouldBeNil)
+					So(len(rooms), ShouldEqual, 0)
 				})
 			})
 
