@@ -511,17 +511,26 @@ func (cs *coreService) SendMultipartMessage(
 
 	requestParts := make([]interface{}, len(options.Parts))
 
-	// TODO multiple uploads concurrently
+	errChan := make(chan error)
+	uploads := 0
+
 	for i, part := range options.Parts {
 		switch p := part.(type) {
 		case NewAttachmentPart:
-			uploadedPart, err := cs.uploadAttachment(ctx, options.SenderID, options.RoomID, p)
-			if err != nil {
-				return 0, fmt.Errorf("Failed to upload attachment: %v", err)
-			}
-			requestParts[i] = uploadedPart
+			uploads++
+			go func(i int, p NewAttachmentPart) {
+				uploadedPart, err := cs.uploadAttachment(ctx, options.SenderID, options.RoomID, p)
+				requestParts[i] = uploadedPart
+				errChan <- err
+			}(i, p)
 		default:
 			requestParts[i] = part
+		}
+	}
+
+	for ; uploads > 0; uploads-- {
+		if err := <-errChan; err != nil {
+			return 0, fmt.Errorf("Failed to upload attachment: %v", err)
 		}
 	}
 
