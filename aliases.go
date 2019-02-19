@@ -36,6 +36,7 @@ type (
 	NewPart                     = core.NewPart
 	NewInlinePart               = core.NewInlinePart
 	NewURLPart                  = core.NewURLPart
+	NewAttachmentPart           = core.NewAttachmentPart
 	GetRoomMessagesOptions      = core.GetRoomMessagesOptions
 	User                        = core.User
 	Room                        = core.Room

@@ -10,6 +10,7 @@ import (
 	"os"
 	"reflect"
 	"sort"
+	"strings"
 	"testing"
 	"time"
 
@@ -857,6 +858,10 @@ func TestMessages(t *testing.T) {
 		})
 
 		Convey("we can publish a multipart messages", func() {
+			fileName := "cat.jpg"
+			file, err := os.Open(fileName)
+			So(err, ShouldBeNil)
+
 			messageID, err := client.SendMultipartMessage(ctx, SendMultipartMessageOptions{
 				RoomID:   room.ID,
 				SenderID: userID,
@@ -864,7 +869,16 @@ func TestMessages(t *testing.T) {
 					NewInlinePart{Type: "text/plain", Content: "see attached"},
 					NewURLPart{Type: "audio/ogg", URL: "https://example.com/audio.ogg"},
 					NewURLPart{Type: "audio/ogg", URL: "https://example.com/audio2.ogg"},
-					// TODO replace second URL part with an attachment part
+					NewAttachmentPart{
+						Type:       "application/json",
+						File:       strings.NewReader(`{"hello":"world"}`),
+						CustomData: "anything",
+					},
+					NewAttachmentPart{
+						Type: "image/png",
+						File: file,
+						Name: &fileName,
+					},
 				},
 			})
 			So(err, ShouldBeNil)
