@@ -861,6 +861,7 @@ func TestMessages(t *testing.T) {
 			fileName := "cat.jpg"
 			file, err := os.Open(fileName)
 			So(err, ShouldBeNil)
+			defer file.Close()
 
 			messageID, err := client.SendMultipartMessage(ctx, SendMultipartMessageOptions{
 				RoomID:   room.ID,
