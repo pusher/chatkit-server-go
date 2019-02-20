@@ -48,7 +48,16 @@ type Service interface {
 	SendMessage(ctx context.Context, options SendMessageOptions) (uint, error)
 	SendMultipartMessage(ctx context.Context, options SendMultipartMessageOptions) (uint, error)
 	SendSimpleMessage(ctx context.Context, options SendSimpleMessageOptions) (uint, error)
-	GetRoomMessages(ctx context.Context, roomID string, options GetRoomMessagesOptions) ([]Message, error)
+	GetRoomMessages(
+		ctx context.Context,
+		roomID string,
+		options GetRoomMessagesOptions,
+	) ([]Message, error)
+	FetchMultipartMessages(
+		ctx context.Context,
+		roomID string,
+		options FetchMultipartMessagesOptions,
+	) ([]MultipartMessage, error)
 	DeleteMessage(ctx context.Context, messageID uint) error
 
 	// Generic requests
@@ -701,6 +710,28 @@ func (cs *coreService) GetRoomMessages(
 	roomID string,
 	options GetRoomMessagesOptions,
 ) ([]Message, error) {
+	messages := []Message{}
+	err := cs.fetchMessages(ctx, roomID, options, &messages)
+	return messages, err
+}
+
+// FetchMultipartMessages fetches messages sent to a room based on the passed in options.
+func (cs *coreService) FetchMultipartMessages(
+	ctx context.Context,
+	roomID string,
+	options FetchMultipartMessagesOptions,
+) ([]MultipartMessage, error) {
+	messages := []MultipartMessage{}
+	err := cs.fetchMessages(ctx, roomID, options, &messages)
+	return messages, err
+}
+
+func (cs *coreService) fetchMessages(
+	ctx context.Context,
+	roomID string,
+	options fetchMessagesOptions,
+	target interface{}, // poor man's generics
+) error {
 	queryParams := url.Values{}
 	if options.Direction != nil {
 		queryParams.Add("direction", *options.Direction)
@@ -720,17 +751,16 @@ func (cs *coreService) GetRoomMessages(
 		QueryParams: &queryParams,
 	})
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer response.Body.Close()
 
-	var messages []Message
-	err = common.DecodeResponseBody(response.Body, &messages)
+	err = common.DecodeResponseBody(response.Body, target)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return messages, nil
+	return nil
 }
 
 // Request allows performing requests to the core chatkit service and returns the raw http response.

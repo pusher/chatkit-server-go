@@ -348,6 +348,16 @@ func (c *Client) GetRoomMessages(
 	return c.coreServiceV2.GetRoomMessages(ctx, roomID, options)
 }
 
+// FetchMultipartMessages retrieves messages previously sent to a room based on
+// the options provided.
+func (c *Client) FetchMultipartMessages(
+	ctx context.Context,
+	roomID string,
+	options GetRoomMessagesOptions,
+) ([]MultipartMessage, error) {
+	return c.coreServiceV3.FetchMultipartMessages(ctx, roomID, options)
+}
+
 // DeleteMessage allows a previously sent message to be deleted.
 // Message text content is replaced with a tombstone so as to not
 // add gaps to conversation history.
