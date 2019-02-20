@@ -13,10 +13,12 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/pusher/chatkit-server-go/internal/common"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/pusher/pusher-platform-go/client"
 	"github.com/pusher/pusher-platform-go/instance"
+
+	"github.com/pusher/chatkit-server-go/internal/common"
 )
 
 // Exposes methods to interact with the core chatkit service.
@@ -510,28 +512,24 @@ func (cs *coreService) SendMultipartMessage(
 	}
 
 	requestParts := make([]interface{}, len(options.Parts))
-
-	errChan := make(chan error)
-	uploads := 0
+	g := errgroup.Group{}
 
 	for i, part := range options.Parts {
 		switch p := part.(type) {
 		case NewAttachmentPart:
-			uploads++
-			go func(i int, p NewAttachmentPart) {
+			i := i
+			g.Go(func() error {
 				uploadedPart, err := cs.uploadAttachment(ctx, options.SenderID, options.RoomID, p)
 				requestParts[i] = uploadedPart
-				errChan <- err
-			}(i, p)
+				return err
+			})
 		default:
 			requestParts[i] = part
 		}
 	}
 
-	for ; uploads > 0; uploads-- {
-		if err := <-errChan; err != nil {
-			return 0, fmt.Errorf("Failed to upload attachment: %v", err)
-		}
+	if err := g.Wait(); err != nil {
+		return 0, fmt.Errorf("Failed to upload attachment: %v", err)
 	}
 
 	requestBody, err := common.CreateRequestBody(

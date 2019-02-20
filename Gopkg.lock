@@ -62,6 +62,14 @@
   revision = "9e8dc3f972df6c8fcc0375ef492c24d0bb204857"
   version = "1.6.3"
 
+[[projects]]
+  branch = "master"
+  digest = "1:b521f10a2d8fa85c04a8ef4e62f2d1e14d303599a55d64dabf9f5a02f84d35eb"
+  name = "golang.org/x/sync"
+  packages = ["errgroup"]
+  pruneopts = "UT"
+  revision = "37e7f081c4d4c64e13b10787722085407fe5d15f"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
@@ -70,6 +78,7 @@
     "github.com/pusher/pusher-platform-go/client",
     "github.com/pusher/pusher-platform-go/instance",
     "github.com/smartystreets/goconvey/convey",
+    "golang.org/x/sync/errgroup",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1
