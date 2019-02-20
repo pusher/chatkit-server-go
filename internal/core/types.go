@@ -1,6 +1,9 @@
 package core
 
-import "time"
+import (
+	"io"
+	"time"
+)
 
 // User represents a chatkit user.
 type User struct {
@@ -111,6 +114,27 @@ type NewURLPart struct {
 }
 
 func (p NewURLPart) isNewPart() {}
+
+// NewAttachmentPart has no JSON annotations because it cannot be sent directly
+// to the backend. The attachment must first be uploaded and a
+// newAttachmentPartUploaded sent instead.
+type NewAttachmentPart struct {
+	Type       string
+	Name       *string
+	CustomData interface{}
+	File       io.Reader
+}
+
+func (p NewAttachmentPart) isNewPart() {}
+
+type newAttachmentPartUploaded struct {
+	Type       string             `json:"type"`
+	Attachment uploadedAttachment `json:"attachment"`
+}
+
+type uploadedAttachment struct {
+	ID string `json:"id"`
+}
 
 // GetRoomMessagesOptions contains parameters to pass when fetching messages from a room.
 type GetRoomMessagesOptions struct {
