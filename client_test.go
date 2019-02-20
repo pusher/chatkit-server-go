@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"math/rand"
 	"net/http"
 	"os"
@@ -899,7 +900,63 @@ func TestMessages(t *testing.T) {
 				)
 			})
 
-			// TODO fetch v3
+			Convey("and fetch it (v3)", func() {
+				limit := uint(1)
+				messages, err := client.FetchMultipartMessages(
+					ctx,
+					room.ID,
+					FetchMultipartMessagesOptions{Limit: &limit},
+				)
+				So(err, ShouldBeNil)
+				So(len(messages), ShouldEqual, 1)
+				So(messages[0].ID, ShouldEqual, messageID)
+				So(len(messages[0].Parts), ShouldEqual, 5)
+
+				So(messages[0].Parts[0].Type, ShouldEqual, "text/plain")
+				So(messages[0].Parts[0].Content, ShouldNotBeNil)
+				So(*messages[0].Parts[0].Content, ShouldEqual, "see attached")
+				So(messages[0].Parts[0].URL, ShouldBeNil)
+				So(messages[0].Parts[0].Attachment, ShouldBeNil)
+
+				So(messages[0].Parts[1].Type, ShouldEqual, "audio/ogg")
+				So(messages[0].Parts[1].Content, ShouldBeNil)
+				So(messages[0].Parts[1].URL, ShouldNotBeNil)
+				So(*messages[0].Parts[1].URL, ShouldEqual, "https://example.com/audio.ogg")
+				So(messages[0].Parts[1].Attachment, ShouldBeNil)
+
+				So(messages[0].Parts[2].Type, ShouldEqual, "audio/ogg")
+				So(messages[0].Parts[2].Content, ShouldBeNil)
+				So(messages[0].Parts[2].URL, ShouldNotBeNil)
+				So(*messages[0].Parts[2].URL, ShouldEqual, "https://example.com/audio2.ogg")
+				So(messages[0].Parts[2].Attachment, ShouldBeNil)
+
+				So(messages[0].Parts[3].Type, ShouldEqual, "application/json")
+				So(messages[0].Parts[3].Content, ShouldBeNil)
+				So(messages[0].Parts[3].URL, ShouldBeNil)
+				So(messages[0].Parts[3].Attachment, ShouldNotBeNil)
+				So(messages[0].Parts[3].Attachment.RefreshURL, ShouldNotEqual, "")
+				So(messages[0].Parts[3].Attachment.Expiration, ShouldNotEqual, time.Time{})
+				So(messages[0].Parts[3].Attachment.Name, ShouldNotEqual, "")
+				So(messages[0].Parts[3].Attachment.Size, ShouldEqual, 17)
+				So(messages[0].Parts[3].Attachment.CustomData, ShouldEqual, "anything")
+				res, err := http.Get(messages[0].Parts[3].Attachment.DownloadURL)
+				So(err, ShouldBeNil)
+				defer res.Body.Close()
+				body, err := ioutil.ReadAll(res.Body)
+				So(err, ShouldBeNil)
+				So(string(body), ShouldEqual, `{"hello":"world"}`)
+
+				So(messages[0].Parts[4].Type, ShouldEqual, "image/png")
+				So(messages[0].Parts[4].Content, ShouldBeNil)
+				So(messages[0].Parts[4].URL, ShouldBeNil)
+				So(messages[0].Parts[4].Attachment, ShouldNotBeNil)
+				So(messages[0].Parts[4].Attachment.RefreshURL, ShouldNotEqual, "")
+				So(messages[0].Parts[4].Attachment.Expiration, ShouldNotEqual, time.Time{})
+				So(messages[0].Parts[4].Attachment.Name, ShouldEqual, fileName)
+				So(messages[0].Parts[4].Attachment.Size, ShouldEqual, 44043)
+				So(messages[0].Parts[4].Attachment.CustomData, ShouldBeNil)
+				So(messages[0].Parts[4].Attachment.DownloadURL, ShouldNotEqual, "")
+			})
 		})
 
 		Reset(func() {

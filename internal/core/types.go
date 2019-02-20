@@ -27,6 +27,10 @@ type Room struct {
 	UpdatedAt     time.Time   `json:"updated_at"`                // Updation timestamp
 }
 
+type messageIsh interface {
+	isMessageIsh()
+}
+
 // Message represents a message sent to a chatkit room.
 type Message struct {
 	ID        uint      `json:"id"`         // Message ID
@@ -35,6 +39,37 @@ type Message struct {
 	Text      string    `json:"text"`       // Content of the message
 	CreatedAt time.Time `json:"created_at"` // Creation timestamp
 	UpdatedAt time.Time `json:"updated_at"` // Updation timestamp
+}
+
+func (Message) isMessageIsh() {}
+
+// MultipartMessage represents a message sent to a chatkit room.
+type MultipartMessage struct {
+	ID        uint      `json:"id"`         // Message ID
+	UserID    string    `json:"user_id"`    // User that sent the message
+	RoomID    string    `json:"room_id"`    // Room the message was sent to
+	Parts     []Part    `json:"parts"`      // Parts composing the message
+	CreatedAt time.Time `json:"created_at"` // Creation timestamp
+	UpdatedAt time.Time `json:"updated_at"` // Updation timestamp
+}
+
+func (MultipartMessage) isMessageIsh() {}
+
+type Part struct {
+	Type       string      `json:"type"`
+	Content    *string     `json:"content,omitempty"`
+	URL        *string     `json:"url,omitempty"`
+	Attachment *Attachment `json:"attachment,omitempty"`
+}
+
+type Attachment struct {
+	ID          string      `json:"id"`
+	DownloadURL string      `json:"download_url"`
+	RefreshURL  string      `json:"refresh_url"`
+	Expiration  time.Time   `json:"expiration"`
+	Name        string      `json:"name"`
+	CustomData  interface{} `json:"custom_data,omitempty"`
+	Size        uint        `json:"size"`
 }
 
 // GetUsersOptions contains parameters to pass when fetching users.
@@ -136,9 +171,14 @@ type uploadedAttachment struct {
 	ID string `json:"id"`
 }
 
-// GetRoomMessagesOptions contains parameters to pass when fetching messages from a room.
-type GetRoomMessagesOptions struct {
+type fetchMessagesOptions struct {
 	InitialID *uint   // Starting ID of messages to retrieve
 	Direction *string // One of older or newer
 	Limit     *uint   // Number of messages to retrieve
 }
+
+// FetchMultipartMessagesOptions contains parameters to pass when fetching messages from a room.
+type FetchMultipartMessagesOptions = fetchMessagesOptions
+
+// GetRoomMessagesOptions contains parameters to pass when fetching messages from a room.
+type GetRoomMessagesOptions = fetchMessagesOptions
