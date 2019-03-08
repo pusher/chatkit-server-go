@@ -1,6 +1,9 @@
 package core
 
-import "time"
+import (
+	"io"
+	"time"
+)
 
 // User represents a chatkit user.
 type User struct {
@@ -24,6 +27,10 @@ type Room struct {
 	UpdatedAt     time.Time   `json:"updated_at"`                // Updation timestamp
 }
 
+type messageIsh interface {
+	isMessageIsh()
+}
+
 // Message represents a message sent to a chatkit room.
 type Message struct {
 	ID        uint      `json:"id"`         // Message ID
@@ -32,6 +39,37 @@ type Message struct {
 	Text      string    `json:"text"`       // Content of the message
 	CreatedAt time.Time `json:"created_at"` // Creation timestamp
 	UpdatedAt time.Time `json:"updated_at"` // Updation timestamp
+}
+
+func (Message) isMessageIsh() {}
+
+// MultipartMessage represents a message sent to a chatkit room.
+type MultipartMessage struct {
+	ID        uint      `json:"id"`         // Message ID
+	UserID    string    `json:"user_id"`    // User that sent the message
+	RoomID    string    `json:"room_id"`    // Room the message was sent to
+	Parts     []Part    `json:"parts"`      // Parts composing the message
+	CreatedAt time.Time `json:"created_at"` // Creation timestamp
+	UpdatedAt time.Time `json:"updated_at"` // Updation timestamp
+}
+
+func (MultipartMessage) isMessageIsh() {}
+
+type Part struct {
+	Type       string      `json:"type"`
+	Content    *string     `json:"content,omitempty"`
+	URL        *string     `json:"url,omitempty"`
+	Attachment *Attachment `json:"attachment,omitempty"`
+}
+
+type Attachment struct {
+	ID          string      `json:"id"`
+	DownloadURL string      `json:"download_url"`
+	RefreshURL  string      `json:"refresh_url"`
+	Expiration  time.Time   `json:"expiration"`
+	Name        string      `json:"name"`
+	CustomData  interface{} `json:"custom_data,omitempty"`
+	Size        uint        `json:"size"`
 }
 
 // GetUsersOptions contains parameters to pass when fetching users.
@@ -78,15 +116,69 @@ type UpdateRoomOptions struct {
 }
 
 // SendMessageOptions contains parameters to pass when sending a new message.
-type SendMessageOptions struct {
+type SendMessageOptions = SendSimpleMessageOptions
+
+// SendMultipartMessageOptions contains parameters to pass when sending a new message.
+type SendMultipartMessageOptions struct {
+	RoomID   string
+	SenderID string
+	Parts    []NewPart
+}
+
+// SendSimpleMessageOptions contains parameters to pass when sending a new message.
+type SendSimpleMessageOptions struct {
 	RoomID   string
 	Text     string
 	SenderID string
 }
 
-// GetRoomMessagesOptions contains parameters to pass when fetching messages from a room.
-type GetRoomMessagesOptions struct {
+type NewPart interface {
+	isNewPart()
+}
+
+type NewInlinePart struct {
+	Type    string `json:"type"`
+	Content string `json:"content"`
+}
+
+func (p NewInlinePart) isNewPart() {}
+
+type NewURLPart struct {
+	Type string `json:"type"`
+	URL  string `json:"url"`
+}
+
+func (p NewURLPart) isNewPart() {}
+
+// NewAttachmentPart has no JSON annotations because it cannot be sent directly
+// to the backend. The attachment must first be uploaded and a
+// newAttachmentPartUploaded sent instead.
+type NewAttachmentPart struct {
+	Type       string
+	Name       *string
+	CustomData interface{}
+	File       io.Reader
+}
+
+func (p NewAttachmentPart) isNewPart() {}
+
+type newAttachmentPartUploaded struct {
+	Type       string             `json:"type"`
+	Attachment uploadedAttachment `json:"attachment"`
+}
+
+type uploadedAttachment struct {
+	ID string `json:"id"`
+}
+
+type fetchMessagesOptions struct {
 	InitialID *uint   // Starting ID of messages to retrieve
 	Direction *string // One of older or newer
 	Limit     *uint   // Number of messages to retrieve
 }
+
+// FetchMultipartMessagesOptions contains parameters to pass when fetching messages from a room.
+type FetchMultipartMessagesOptions = fetchMessagesOptions
+
+// GetRoomMessagesOptions contains parameters to pass when fetching messages from a room.
+type GetRoomMessagesOptions = fetchMessagesOptions

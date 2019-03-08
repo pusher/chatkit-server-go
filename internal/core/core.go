@@ -3,17 +3,22 @@
 package core
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
 
-	"github.com/pusher/chatkit-server-go/internal/common"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/pusher/pusher-platform-go/client"
 	"github.com/pusher/pusher-platform-go/instance"
+
+	"github.com/pusher/chatkit-server-go/internal/common"
 )
 
 // Exposes methods to interact with the core chatkit service.
@@ -41,7 +46,18 @@ type Service interface {
 
 	// Messages
 	SendMessage(ctx context.Context, options SendMessageOptions) (uint, error)
-	GetRoomMessages(ctx context.Context, roomID string, options GetRoomMessagesOptions) ([]Message, error)
+	SendMultipartMessage(ctx context.Context, options SendMultipartMessageOptions) (uint, error)
+	SendSimpleMessage(ctx context.Context, options SendSimpleMessageOptions) (uint, error)
+	GetRoomMessages(
+		ctx context.Context,
+		roomID string,
+		options GetRoomMessagesOptions,
+	) ([]Message, error)
+	FetchMultipartMessages(
+		ctx context.Context,
+		roomID string,
+		options FetchMultipartMessagesOptions,
+	) ([]MultipartMessage, error)
 	DeleteMessage(ctx context.Context, messageID uint) error
 
 	// Generic requests
@@ -491,6 +507,189 @@ func (cs *coreService) SendMessage(ctx context.Context, options SendMessageOptio
 	return messageResponse["message_id"], nil
 }
 
+// SendMultipartMessage publishes a multipart message to a room.
+func (cs *coreService) SendMultipartMessage(
+	ctx context.Context,
+	options SendMultipartMessageOptions,
+) (uint, error) {
+	if len(options.Parts) == 0 {
+		return 0, errors.New("You must provide at least one message part")
+	}
+
+	if options.SenderID == "" {
+		return 0, errors.New("You must provide the ID of the user sending the message")
+	}
+
+	requestParts := make([]interface{}, len(options.Parts))
+	g := errgroup.Group{}
+
+	for i, part := range options.Parts {
+		switch p := part.(type) {
+		case NewAttachmentPart:
+			i := i
+			g.Go(func() error {
+				uploadedPart, err := cs.uploadAttachment(ctx, options.SenderID, options.RoomID, p)
+				requestParts[i] = uploadedPart
+				return err
+			})
+		default:
+			requestParts[i] = part
+		}
+	}
+
+	if err := g.Wait(); err != nil {
+		return 0, fmt.Errorf("Failed to upload attachment: %v", err)
+	}
+
+	requestBody, err := common.CreateRequestBody(
+		map[string]interface{}{"parts": requestParts},
+	)
+	if err != nil {
+		return 0, err
+	}
+
+	response, err := common.RequestWithUserToken(
+		cs.underlyingInstance,
+		ctx,
+		options.SenderID,
+		client.RequestOptions{
+			Method: http.MethodPost,
+			Path:   fmt.Sprintf("/rooms/%s/messages", options.RoomID),
+			Body:   requestBody,
+		},
+	)
+	if err != nil {
+		return 0, err
+	}
+	defer response.Body.Close()
+
+	var messageResponse map[string]uint
+	err = common.DecodeResponseBody(response.Body, &messageResponse)
+	if err != nil {
+		return 0, err
+	}
+
+	return messageResponse["message_id"], nil
+}
+
+func (cs *coreService) uploadAttachment(
+	ctx context.Context,
+	senderID string,
+	roomID string,
+	part NewAttachmentPart,
+) (newAttachmentPartUploaded, error) {
+	// Unfortunately since we need to provide the content length up front, we
+	// have to read the whole file in to memory.
+	b, err := ioutil.ReadAll(part.File)
+	if err != nil {
+		return newAttachmentPartUploaded{}, err
+	}
+
+	url, attachmentID, err := cs.requestPresignedURL(
+		ctx,
+		senderID,
+		roomID,
+		part.Type,
+		len(b),
+		part.Name,
+		part.CustomData,
+	)
+	if err != nil {
+		return newAttachmentPartUploaded{}, err
+	}
+
+	if err := cs.uploadToURL(ctx, url, part.Type, len(b), bytes.NewReader(b)); err != nil {
+		return newAttachmentPartUploaded{}, err
+	}
+
+	return newAttachmentPartUploaded{
+		Type:       part.Type,
+		Attachment: uploadedAttachment{attachmentID},
+	}, nil
+}
+
+func (cs *coreService) requestPresignedURL(
+	ctx context.Context,
+	senderID string,
+	roomID string,
+	contentType string,
+	contentLength int,
+	name *string,
+	customData interface{},
+) (string, string, error) {
+	body, err := common.CreateRequestBody(map[string]interface{}{
+		"content_type":   contentType,
+		"content_length": contentLength,
+		"name":           name,
+		"custom_data":    customData,
+	})
+	if err != nil {
+		return "", "", err
+	}
+
+	res, err := common.RequestWithUserToken(
+		cs.underlyingInstance,
+		ctx,
+		senderID,
+		client.RequestOptions{
+			Method: http.MethodPost,
+			Path:   fmt.Sprintf("/rooms/%s/attachments", roomID),
+			Body:   body,
+		},
+	)
+	if err != nil {
+		return "", "", err
+	}
+	defer res.Body.Close()
+
+	var resBody map[string]string
+	if err := common.DecodeResponseBody(res.Body, &resBody); err != nil {
+		return "", "", err
+	}
+
+	return resBody["upload_url"], resBody["attachment_id"], nil
+}
+
+func (cs *coreService) uploadToURL(
+	ctx context.Context,
+	url string,
+	contentType string,
+	contentLength int,
+	body io.Reader,
+) error {
+	client := &http.Client{}
+
+	req, err := http.NewRequest("PUT", url, body)
+	if err != nil {
+		return err
+	}
+	req.Header.Add("content-type", contentType)
+	req.Header.Add("content-length", strconv.Itoa(contentLength))
+
+	res, err := client.Do(req.WithContext(ctx))
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+	if res.StatusCode < 200 || res.StatusCode >= 300 {
+		return fmt.Errorf("unexpected status: %v", res.Status)
+	}
+
+	return nil
+}
+
+// SendSimpleMessage publishes a simple message to a room.
+func (cs *coreService) SendSimpleMessage(
+	ctx context.Context,
+	options SendSimpleMessageOptions,
+) (uint, error) {
+	return cs.SendMultipartMessage(ctx, SendMultipartMessageOptions{
+		RoomID:   options.RoomID,
+		SenderID: options.SenderID,
+		Parts:    []NewPart{NewInlinePart{Type: "text/plain", Content: options.Text}},
+	})
+}
+
 // DeleteMessage deletes a previously sent message.
 func (cs *coreService) DeleteMessage(ctx context.Context, messageID uint) error {
 	response, err := common.RequestWithSuToken(cs.underlyingInstance, ctx, client.RequestOptions{
@@ -511,6 +710,28 @@ func (cs *coreService) GetRoomMessages(
 	roomID string,
 	options GetRoomMessagesOptions,
 ) ([]Message, error) {
+	messages := []Message{}
+	err := cs.fetchMessages(ctx, roomID, options, &messages)
+	return messages, err
+}
+
+// FetchMultipartMessages fetches messages sent to a room based on the passed in options.
+func (cs *coreService) FetchMultipartMessages(
+	ctx context.Context,
+	roomID string,
+	options FetchMultipartMessagesOptions,
+) ([]MultipartMessage, error) {
+	messages := []MultipartMessage{}
+	err := cs.fetchMessages(ctx, roomID, options, &messages)
+	return messages, err
+}
+
+func (cs *coreService) fetchMessages(
+	ctx context.Context,
+	roomID string,
+	options fetchMessagesOptions,
+	target interface{}, // poor man's generics
+) error {
 	queryParams := url.Values{}
 	if options.Direction != nil {
 		queryParams.Add("direction", *options.Direction)
@@ -530,17 +751,16 @@ func (cs *coreService) GetRoomMessages(
 		QueryParams: &queryParams,
 	})
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer response.Body.Close()
 
-	var messages []Message
-	err = common.DecodeResponseBody(response.Body, &messages)
+	err = common.DecodeResponseBody(response.Body, target)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return messages, nil
+	return nil
 }
 
 // Request allows performing requests to the core chatkit service and returns the raw http response.

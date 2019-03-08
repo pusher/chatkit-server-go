@@ -24,15 +24,25 @@ type (
 
 	Cursor = cursors.Cursor
 
-	GetUsersOptions        = core.GetUsersOptions
-	CreateUserOptions      = core.CreateUserOptions
-	UpdateUserOptions      = core.UpdateUserOptions
-	GetRoomsOptions        = core.GetRoomsOptions
-	CreateRoomOptions      = core.CreateRoomOptions
-	UpdateRoomOptions      = core.UpdateRoomOptions
-	SendMessageOptions     = core.SendMessageOptions
-	GetRoomMessagesOptions = core.GetRoomMessagesOptions
-	User                   = core.User
-	Room                   = core.Room
-	Message                = core.Message
+	GetUsersOptions               = core.GetUsersOptions
+	CreateUserOptions             = core.CreateUserOptions
+	UpdateUserOptions             = core.UpdateUserOptions
+	GetRoomsOptions               = core.GetRoomsOptions
+	CreateRoomOptions             = core.CreateRoomOptions
+	UpdateRoomOptions             = core.UpdateRoomOptions
+	SendMessageOptions            = core.SendMessageOptions
+	SendMultipartMessageOptions   = core.SendMultipartMessageOptions
+	SendSimpleMessageOptions      = core.SendSimpleMessageOptions
+	NewPart                       = core.NewPart
+	NewInlinePart                 = core.NewInlinePart
+	NewURLPart                    = core.NewURLPart
+	NewAttachmentPart             = core.NewAttachmentPart
+	GetRoomMessagesOptions        = core.GetRoomMessagesOptions
+	FetchMultipartMessagesOptions = core.FetchMultipartMessagesOptions
+	User                          = core.User
+	Room                          = core.Room
+	Message                       = core.Message
+	MultipartMessage              = core.MultipartMessage
+	Part                          = core.Part
+	Attachment                    = core.Attachment
 )
