@@ -58,7 +58,7 @@ type Service interface {
 		roomID string,
 		options FetchMultipartMessagesOptions,
 	) ([]MultipartMessage, error)
-	DeleteMessage(ctx context.Context, messageID uint) error
+	DeleteMessage(ctx context.Context, options DeleteMessageOptions) error
 
 	// Generic requests
 	Request(ctx context.Context, options client.RequestOptions) (*http.Response, error)
@@ -691,10 +691,10 @@ func (cs *coreService) SendSimpleMessage(
 }
 
 // DeleteMessage deletes a previously sent message.
-func (cs *coreService) DeleteMessage(ctx context.Context, messageID uint) error {
+func (cs *coreService) DeleteMessage(ctx context.Context, options DeleteMessageOptions) error {
 	response, err := common.RequestWithSuToken(cs.underlyingInstance, ctx, client.RequestOptions{
 		Method: http.MethodDelete,
-		Path:   fmt.Sprintf("/messages/%d", messageID),
+		Path:   fmt.Sprintf("/rooms/%s/messages/%d", options.RoomID, options.MessageID),
 	})
 	if err != nil {
 		return nil
