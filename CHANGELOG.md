@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased](https://github.com/pusher/chatkit-server-go/compare/1.2.0...HEAD)
 
+### Additions
+
+- Support for user specified room IDs. Provide the `ID` parameter to the
+  `CreateRoom` method.
+
+### Changes
+
+- The `DeleteMessage` method now *requires* a room ID parameter, `RoomID`, and
+  the `ID` parameter has been renamed to `MessageId` to avoid ambiguity.
+
 ## [1.2.0](https://github.com/pusher/chatkit-server-go/compare/1.1.0...1.2.0)
 
 - Multipart message support: `SendSimpleMessage`, `SendMultipartMessage`,
