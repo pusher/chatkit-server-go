@@ -24,7 +24,7 @@ import (
 // It allows interacting with different Chatkit services.
 type Client struct {
 	coreServiceV2        core.Service
-	coreServiceV3        core.Service
+	coreServiceV6        core.Service
 	authorizerService    authorizer.Service
 	cursorsService       cursors.Service
 	authenticatorService authenticator.Service
@@ -57,11 +57,11 @@ func NewClient(instanceLocator string, key string) (*Client, error) {
 		return nil, err
 	}
 
-	coreInstanceV3, err := instance.New(instance.Options{
+	coreInstanceV6, err := instance.New(instance.Options{
 		Locator:        instanceLocator,
 		Key:            key,
 		ServiceName:    "chatkit",
-		ServiceVersion: "v3",
+		ServiceVersion: "v6",
 		Client:         baseClient,
 	})
 	if err != nil {
@@ -92,7 +92,7 @@ func NewClient(instanceLocator string, key string) (*Client, error) {
 
 	return &Client{
 		coreServiceV2:     core.NewService(coreInstanceV2),
-		coreServiceV3:     core.NewService(coreInstanceV3),
+		coreServiceV6:     core.NewService(coreInstanceV6),
 		authorizerService: authorizer.NewService(authorizerInstance),
 		cursorsService:    cursors.NewService(cursorsInstance),
 		authenticatorService: authenticator.NewService(
@@ -239,83 +239,83 @@ func (c *Client) AuthorizerRequest(
 
 // GetUser retrieves a previously created Chatkit user.
 func (c *Client) GetUser(ctx context.Context, userID string) (User, error) {
-	return c.coreServiceV3.GetUser(ctx, userID)
+	return c.coreServiceV6.GetUser(ctx, userID)
 }
 
 // GetUsers retrieves a list of users based on the options provided.
 func (c *Client) GetUsers(ctx context.Context, options *GetUsersOptions) ([]User, error) {
-	return c.coreServiceV3.GetUsers(ctx, options)
+	return c.coreServiceV6.GetUsers(ctx, options)
 }
 
 // GetUsersByID retrieves a list of users for the given id's.
 func (c *Client) GetUsersByID(ctx context.Context, userIDs []string) ([]User, error) {
-	return c.coreServiceV3.GetUsersByID(ctx, userIDs)
+	return c.coreServiceV6.GetUsersByID(ctx, userIDs)
 }
 
 // CreateUser creates a new chatkit user.
 func (c *Client) CreateUser(ctx context.Context, options CreateUserOptions) error {
-	return c.coreServiceV3.CreateUser(ctx, options)
+	return c.coreServiceV6.CreateUser(ctx, options)
 }
 
 // CreateUsers creates a batch of users.
 func (c *Client) CreateUsers(ctx context.Context, users []CreateUserOptions) error {
-	return c.coreServiceV3.CreateUsers(ctx, users)
+	return c.coreServiceV6.CreateUsers(ctx, users)
 }
 
 // UpdateUser allows updating a previously created user.
 func (c *Client) UpdateUser(ctx context.Context, userID string, options UpdateUserOptions) error {
-	return c.coreServiceV3.UpdateUser(ctx, userID, options)
+	return c.coreServiceV6.UpdateUser(ctx, userID, options)
 }
 
 // DeleteUser deletes a previously created user.
 func (c *Client) DeleteUser(ctx context.Context, userID string) error {
-	return c.coreServiceV3.DeleteUser(ctx, userID)
+	return c.coreServiceV6.DeleteUser(ctx, userID)
 }
 
 // GetRoom retrieves an existing room.
 func (c *Client) GetRoom(ctx context.Context, roomID string) (Room, error) {
-	return c.coreServiceV3.GetRoom(ctx, roomID)
+	return c.coreServiceV6.GetRoom(ctx, roomID)
 }
 
 // GetRooms retrieves a list of rooms based on the options provided.
 func (c *Client) GetRooms(ctx context.Context, options GetRoomsOptions) ([]Room, error) {
-	return c.coreServiceV3.GetRooms(ctx, options)
+	return c.coreServiceV6.GetRooms(ctx, options)
 }
 
 // GetUserRooms retrieves a list of rooms the user is an existing member of.
 func (c *Client) GetUserRooms(ctx context.Context, userID string) ([]Room, error) {
-	return c.coreServiceV3.GetUserRooms(ctx, userID)
+	return c.coreServiceV6.GetUserRooms(ctx, userID)
 }
 
 // GetUserJoinableRooms retrieves a list of rooms the use can join (not an existing member of)
 // Private rooms are not returned as part of the response.
 func (c *Client) GetUserJoinableRooms(ctx context.Context, userID string) ([]Room, error) {
-	return c.coreServiceV3.GetUserJoinableRooms(ctx, userID)
+	return c.coreServiceV6.GetUserJoinableRooms(ctx, userID)
 }
 
 // CreateRoom creates a new room.
 func (c *Client) CreateRoom(ctx context.Context, options CreateRoomOptions) (Room, error) {
-	return c.coreServiceV3.CreateRoom(ctx, options)
+	return c.coreServiceV6.CreateRoom(ctx, options)
 }
 
 // UpdateRoom allows updating an existing room.
 func (c *Client) UpdateRoom(ctx context.Context, roomID string, options UpdateRoomOptions) error {
-	return c.coreServiceV3.UpdateRoom(ctx, roomID, options)
+	return c.coreServiceV6.UpdateRoom(ctx, roomID, options)
 }
 
 // DeleteRoom deletes an existing room.
 func (c *Client) DeleteRoom(ctx context.Context, roomID string) error {
-	return c.coreServiceV3.DeleteRoom(ctx, roomID)
+	return c.coreServiceV6.DeleteRoom(ctx, roomID)
 }
 
 // AddUsersToRoom adds new users to an exising room.
 func (c *Client) AddUsersToRoom(ctx context.Context, roomID string, userIDs []string) error {
-	return c.coreServiceV3.AddUsersToRoom(ctx, roomID, userIDs)
+	return c.coreServiceV6.AddUsersToRoom(ctx, roomID, userIDs)
 }
 
 // RemoveUsersFromRoom removes existing members from a room.
 func (c *Client) RemoveUsersFromRoom(ctx context.Context, roomID string, userIDs []string) error {
-	return c.coreServiceV3.RemoveUsersFromRoom(ctx, roomID, userIDs)
+	return c.coreServiceV6.RemoveUsersFromRoom(ctx, roomID, userIDs)
 }
 
 // SendMessage publishes a new message to a room.
@@ -328,7 +328,7 @@ func (c *Client) SendMultipartMessage(
 	ctx context.Context,
 	options SendMultipartMessageOptions,
 ) (uint, error) {
-	return c.coreServiceV3.SendMultipartMessage(ctx, options)
+	return c.coreServiceV6.SendMultipartMessage(ctx, options)
 }
 
 // SendSimpleMessage publishes a new simple multipart message to a room.
@@ -336,7 +336,7 @@ func (c *Client) SendSimpleMessage(
 	ctx context.Context,
 	options SendSimpleMessageOptions,
 ) (uint, error) {
-	return c.coreServiceV3.SendSimpleMessage(ctx, options)
+	return c.coreServiceV6.SendSimpleMessage(ctx, options)
 }
 
 // GetRoomMessages retrieves messages previously sent to a room based on the options provided.
@@ -355,14 +355,12 @@ func (c *Client) FetchMultipartMessages(
 	roomID string,
 	options GetRoomMessagesOptions,
 ) ([]MultipartMessage, error) {
-	return c.coreServiceV3.FetchMultipartMessages(ctx, roomID, options)
+	return c.coreServiceV6.FetchMultipartMessages(ctx, roomID, options)
 }
 
 // DeleteMessage allows a previously sent message to be deleted.
-// Message text content is replaced with a tombstone so as to not
-// add gaps to conversation history.
-func (c *Client) DeleteMessage(ctx context.Context, messageID uint) error {
-	return c.coreServiceV3.DeleteMessage(ctx, messageID)
+func (c *Client) DeleteMessage(ctx context.Context, options DeleteMessageOptions) error {
+	return c.coreServiceV6.DeleteMessage(ctx, options)
 }
 
 // CoreRequest allows making requests to the core chatkit service and returns a raw HTTP response.
@@ -370,7 +368,7 @@ func (c *Client) CoreRequest(
 	ctx context.Context,
 	options platformclient.RequestOptions,
 ) (*http.Response, error) {
-	return c.coreServiceV3.Request(ctx, options)
+	return c.coreServiceV6.Request(ctx, options)
 }
 
 // Authenticate returns a token response along with headers and status code to be used within

@@ -95,6 +95,7 @@ type UpdateUserOptions struct {
 
 // CreateRoomOptions contains parameters to pass when creating a new room.
 type CreateRoomOptions struct {
+	ID         *string     `json:"id,omitempty"`
 	Name       string      `json:"name"`
 	Private    bool        `json:"private"`
 	UserIDs    []string    `json:"user_ids,omitempty"` // User ID's to be added to the room during creation
@@ -182,3 +183,8 @@ type FetchMultipartMessagesOptions = fetchMessagesOptions
 
 // GetRoomMessagesOptions contains parameters to pass when fetching messages from a room.
 type GetRoomMessagesOptions = fetchMessagesOptions
+
+type DeleteMessageOptions struct {
+	RoomID    string
+	MessageID uint
+}

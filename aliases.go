@@ -38,6 +38,7 @@ type (
 	NewURLPart                    = core.NewURLPart
 	NewAttachmentPart             = core.NewAttachmentPart
 	GetRoomMessagesOptions        = core.GetRoomMessagesOptions
+	DeleteMessageOptions          = core.DeleteMessageOptions
 	FetchMultipartMessagesOptions = core.FetchMultipartMessagesOptions
 	User                          = core.User
 	Room                          = core.Room

@@ -660,7 +660,7 @@ func TestRooms(t *testing.T) {
 		carolID, err := createUser(client)
 		So(err, ShouldBeNil)
 
-		Convey("we can create a room", func() {
+		Convey("we can create a room without providing an ID", func() {
 			roomName := randomString()
 
 			room, err := client.CreateRoom(ctx, CreateRoomOptions{
@@ -731,6 +731,35 @@ func TestRooms(t *testing.T) {
 				r, err := client.GetRoom(ctx, room.ID)
 				So(err, ShouldBeNil)
 				So(r.MemberUserIDs, shouldResembleUpToReordering, []string{aliceID})
+			})
+		})
+
+		Convey("we can create a room providing an ID", func() {
+			roomID := randomString()
+			roomName := randomString()
+
+			room, err := client.CreateRoom(ctx, CreateRoomOptions{
+				ID:         &roomID,
+				Name:       roomName,
+				Private:    true,
+				UserIDs:    []string{aliceID, bobID},
+				CreatorID:  aliceID,
+				CustomData: map[string]interface{}{"foo": "bar"},
+			})
+			So(err, ShouldBeNil)
+			So(room.ID, ShouldEqual, roomID)
+			So(room.Name, ShouldEqual, roomName)
+			So(room.Private, ShouldEqual, true)
+			So(room.MemberUserIDs, shouldResembleUpToReordering, []string{aliceID, bobID})
+
+			Convey("and get it", func() {
+				r, err := client.GetRoom(ctx, room.ID)
+				So(err, ShouldBeNil)
+				So(r.ID, ShouldEqual, room.ID)
+				So(r.Name, ShouldEqual, roomName)
+				So(r.Private, ShouldEqual, true)
+				So(r.MemberUserIDs, shouldResembleUpToReordering, []string{aliceID, bobID})
+				So(r.CustomData, ShouldResemble, map[string]interface{}{"foo": "bar"})
 			})
 		})
 
@@ -856,6 +885,27 @@ func TestMessages(t *testing.T) {
 				So(messagesPage2[1].ID, ShouldEqual, messageID1)
 				So(messagesPage2[1].Text, ShouldEqual, "one")
 			})
+
+			Convey("and delete one of them", func() {
+				err := client.DeleteMessage(ctx, DeleteMessageOptions{
+					RoomID:    room.ID,
+					MessageID: messageID3,
+				})
+				So(err, ShouldBeNil)
+
+				limit := uint(4)
+				messages, err := client.GetRoomMessages(ctx, room.ID, GetRoomMessagesOptions{
+					Limit: &limit,
+				})
+				So(err, ShouldBeNil)
+				So(len(messages), ShouldEqual, 3)
+				So(messages[0].ID, ShouldEqual, messageID4)
+				So(messages[0].Text, ShouldEqual, "four")
+				So(messages[1].ID, ShouldEqual, messageID2)
+				So(messages[1].Text, ShouldEqual, "two")
+				So(messages[2].ID, ShouldEqual, messageID1)
+				So(messages[2].Text, ShouldEqual, "one")
+			})
 		})
 
 		Convey("we can publish a multipart messages", func() {
@@ -900,7 +950,7 @@ func TestMessages(t *testing.T) {
 				)
 			})
 
-			Convey("and fetch it (v3)", func() {
+			Convey("and fetch it (v6)", func() {
 				limit := uint(1)
 				messages, err := client.FetchMultipartMessages(
 					ctx,
@@ -956,6 +1006,21 @@ func TestMessages(t *testing.T) {
 				So(messages[0].Parts[4].Attachment.Size, ShouldEqual, 44043)
 				So(messages[0].Parts[4].Attachment.CustomData, ShouldBeNil)
 				So(messages[0].Parts[4].Attachment.DownloadURL, ShouldNotEqual, "")
+			})
+
+			Convey("and delete it", func() {
+				err := client.DeleteMessage(ctx, DeleteMessageOptions{
+					RoomID:    room.ID,
+					MessageID: messageID,
+				})
+				So(err, ShouldBeNil)
+
+				limit := uint(1)
+				messages, err := client.GetRoomMessages(ctx, room.ID, GetRoomMessagesOptions{
+					Limit: &limit,
+				})
+				So(err, ShouldBeNil)
+				So(len(messages), ShouldEqual, 0)
 			})
 		})
 
