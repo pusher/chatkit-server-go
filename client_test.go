@@ -669,16 +669,19 @@ func TestRooms(t *testing.T) {
 
 		Convey("we can create a room without providing an ID", func() {
 			roomName := randomString()
+			roomPNTitleOverride := randomString()
 
 			room, err := client.CreateRoom(ctx, CreateRoomOptions{
-				Name:       roomName,
-				Private:    true,
-				UserIDs:    []string{aliceID, bobID},
-				CreatorID:  aliceID,
-				CustomData: map[string]interface{}{"foo": "bar"},
+				Name:                          roomName,
+				PushNotificationTitleOverride: &roomPNTitleOverride,
+				Private:                       true,
+				UserIDs:                       []string{aliceID, bobID},
+				CreatorID:                     aliceID,
+				CustomData:                    map[string]interface{}{"foo": "bar"},
 			})
 			So(err, ShouldBeNil)
 			So(room.Name, ShouldEqual, roomName)
+			So(room.PushNotificationTitleOverride, ShouldResemble, &roomPNTitleOverride)
 			So(room.Private, ShouldEqual, true)
 			So(room.MemberUserIDs, shouldResembleUpToReordering, []string{aliceID, bobID})
 
@@ -687,6 +690,7 @@ func TestRooms(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(r.ID, ShouldEqual, room.ID)
 				So(r.Name, ShouldEqual, roomName)
+				So(r.PushNotificationTitleOverride, ShouldResemble, &roomPNTitleOverride)
 				So(r.Private, ShouldEqual, true)
 				So(r.MemberUserIDs, shouldResembleUpToReordering, []string{aliceID, bobID})
 				So(r.CustomData, ShouldResemble, map[string]interface{}{"foo": "bar"})
@@ -694,8 +698,11 @@ func TestRooms(t *testing.T) {
 
 			Convey("and update it", func() {
 				newRoomName := randomString()
+				newRoomPNTitleOverride := randomString()
+
 				err := client.UpdateRoom(ctx, room.ID, UpdateRoomOptions{
 					Name:       &newRoomName,
+					PushNotificationTitleOverride: &newRoomPNTitleOverride,
 					CustomData: map[string]interface{}{"foo": "baz"},
 				})
 				So(err, ShouldBeNil)
@@ -705,6 +712,7 @@ func TestRooms(t *testing.T) {
 					So(err, ShouldBeNil)
 					So(r.ID, ShouldEqual, room.ID)
 					So(r.Name, ShouldEqual, newRoomName)
+					So(r.PushNotificationTitleOverride, ShouldResemble, &newRoomPNTitleOverride)
 					So(r.Private, ShouldEqual, true)
 					So(r.MemberUserIDs, shouldResembleUpToReordering, []string{aliceID, bobID})
 					So(r.CustomData, ShouldResemble, map[string]interface{}{"foo": "baz"})
