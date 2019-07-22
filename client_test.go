@@ -85,7 +85,11 @@ func createUserWithGlobalPermissions(
 	if err != nil {
 		return userID, err
 	}
-	assignGlobalPermissionsToUser(client, userID, permissions)
+
+	_, err = assignGlobalPermissionsToUser(client, userID, permissions)
+	if err != nil {
+		return "", err
+	}
 
 	return userID, nil
 
@@ -269,7 +273,8 @@ func TestCursors(t *testing.T) {
 		})
 
 		Reset(func() {
-			deleteAllResources(client)
+			err := deleteAllResources(client)
+			So(err, ShouldBeNil)
 		})
 	})
 }
@@ -448,7 +453,8 @@ func TestAuthorizer(t *testing.T) {
 		})
 
 		Reset(func() {
-			deleteAllResources(client)
+			err := deleteAllResources(client)
+			So(err, ShouldBeNil)
 		})
 	})
 }
@@ -632,7 +638,8 @@ func TestUsers(t *testing.T) {
 		})
 
 		Reset(func() {
-			deleteAllResources(client)
+			err := deleteAllResources(client)
+			So(err, ShouldBeNil)
 		})
 	})
 }
@@ -805,7 +812,8 @@ func TestRooms(t *testing.T) {
 		})
 
 		Reset(func() {
-			deleteAllResources(client)
+			err := deleteAllResources(client)
+			So(err, ShouldBeNil)
 		})
 	})
 }
@@ -1025,7 +1033,8 @@ func TestMessages(t *testing.T) {
 		})
 
 		Reset(func() {
-			deleteAllResources(client)
+			err := deleteAllResources(client)
+			So(err, ShouldBeNil)
 		})
 	})
 }
