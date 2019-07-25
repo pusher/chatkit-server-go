@@ -119,6 +119,10 @@ type UpdateRoomOptions struct {
 	CustomData                    interface{} `json:"custom_data,omitempty"`
 }
 
+// ExplicitlyResetPushNotificationTitleOverride when used in the UpdateRoomOptions
+// signifies that the override is to be removed entirely
+var ExplicitlyResetPushNotificationTitleOverride = "null"
+
 // SendMessageOptions contains parameters to pass when sending a new message.
 type SendMessageOptions = SendSimpleMessageOptions
 

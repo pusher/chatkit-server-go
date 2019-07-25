@@ -387,7 +387,20 @@ func (cs *coreService) CreateRoom(ctx context.Context, options CreateRoomOptions
 
 // UpdateRoom updates an existing room based on the options provided.
 func (cs *coreService) UpdateRoom(ctx context.Context, roomID string, options UpdateRoomOptions) error {
-	requestBody, err := common.CreateRequestBody(&options)
+	var formattedOptions interface{} = options
+	if options.PushNotificationTitleOverride == &ExplicitlyResetPushNotificationTitleOverride {
+		type updateRoomOptionsWithExplicitPNTitleOverride struct {
+			UpdateRoomOptions
+			// overriding internal `UpdateRoomOptions.PushNotificationTitleOverride` by removing the `omitempty` tag
+			PushNotificationTitleOverride *string `json:"push_notification_title_override"`
+		}
+		formattedOptions = updateRoomOptionsWithExplicitPNTitleOverride{
+			UpdateRoomOptions:             options,
+			PushNotificationTitleOverride: nil,
+		}
+	}
+
+	requestBody, err := common.CreateRequestBody(&formattedOptions)
 	if err != nil {
 		return err
 	}

@@ -15,6 +15,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/pusher/chatkit-server-go/internal/core"
 	"github.com/pusher/pusher-platform-go/auth"
 	platformclient "github.com/pusher/pusher-platform-go/client"
 	. "github.com/smartystreets/goconvey/convey"
@@ -696,14 +697,14 @@ func TestRooms(t *testing.T) {
 				So(r.CustomData, ShouldResemble, map[string]interface{}{"foo": "bar"})
 			})
 
-			Convey("and update it", func() {
+			Convey("and update it to something else", func() {
 				newRoomName := randomString()
 				newRoomPNTitleOverride := randomString()
 
 				err := client.UpdateRoom(ctx, room.ID, UpdateRoomOptions{
-					Name:       &newRoomName,
+					Name:                          &newRoomName,
 					PushNotificationTitleOverride: &newRoomPNTitleOverride,
-					CustomData: map[string]interface{}{"foo": "baz"},
+					CustomData:                    map[string]interface{}{"foo": "baz"},
 				})
 				So(err, ShouldBeNil)
 
@@ -713,6 +714,28 @@ func TestRooms(t *testing.T) {
 					So(r.ID, ShouldEqual, room.ID)
 					So(r.Name, ShouldEqual, newRoomName)
 					So(r.PushNotificationTitleOverride, ShouldResemble, &newRoomPNTitleOverride)
+					So(r.Private, ShouldEqual, true)
+					So(r.MemberUserIDs, shouldResembleUpToReordering, []string{aliceID, bobID})
+					So(r.CustomData, ShouldResemble, map[string]interface{}{"foo": "baz"})
+				})
+			})
+
+			Convey("and explicitly remove it", func() {
+				newRoomName := randomString()
+
+				err := client.UpdateRoom(ctx, room.ID, UpdateRoomOptions{
+					Name:                          &newRoomName,
+					PushNotificationTitleOverride: &core.ExplicitlyResetPushNotificationTitleOverride,
+					CustomData:                    map[string]interface{}{"foo": "baz"},
+				})
+				So(err, ShouldBeNil)
+
+				Convey("and get it again", func() {
+					r, err := client.GetRoom(ctx, room.ID)
+					So(err, ShouldBeNil)
+					So(r.ID, ShouldEqual, room.ID)
+					So(r.Name, ShouldEqual, newRoomName)
+					So(r.PushNotificationTitleOverride, ShouldBeNil)
 					So(r.Private, ShouldEqual, true)
 					So(r.MemberUserIDs, shouldResembleUpToReordering, []string{aliceID, bobID})
 					So(r.CustomData, ShouldResemble, map[string]interface{}{"foo": "baz"})
