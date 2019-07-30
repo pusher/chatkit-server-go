@@ -668,7 +668,7 @@ func TestRooms(t *testing.T) {
 		carolID, err := createUser(client)
 		So(err, ShouldBeNil)
 
-		Convey("we can create a room without providing an ID", func() {
+		Convey("we can create a room (without providing an ID)", func() {
 			roomName := randomString()
 			roomPNTitleOverride := randomString()
 
@@ -720,7 +720,7 @@ func TestRooms(t *testing.T) {
 				})
 			})
 
-			Convey("and explicitly remove it", func() {
+			Convey("and explicitly remove push notifications override", func() {
 				newRoomName := randomString()
 
 				err := client.UpdateRoom(ctx, room.ID, UpdateRoomOptions{
