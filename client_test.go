@@ -15,6 +15,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/pusher/chatkit-server-go/internal/core"
 	"github.com/pusher/pusher-platform-go/auth"
 	platformclient "github.com/pusher/pusher-platform-go/client"
 	. "github.com/smartystreets/goconvey/convey"
@@ -85,7 +86,11 @@ func createUserWithGlobalPermissions(
 	if err != nil {
 		return userID, err
 	}
-	assignGlobalPermissionsToUser(client, userID, permissions)
+
+	_, err = assignGlobalPermissionsToUser(client, userID, permissions)
+	if err != nil {
+		return "", err
+	}
 
 	return userID, nil
 
@@ -269,7 +274,8 @@ func TestCursors(t *testing.T) {
 		})
 
 		Reset(func() {
-			deleteAllResources(client)
+			err := deleteAllResources(client)
+			So(err, ShouldBeNil)
 		})
 	})
 }
@@ -448,7 +454,8 @@ func TestAuthorizer(t *testing.T) {
 		})
 
 		Reset(func() {
-			deleteAllResources(client)
+			err := deleteAllResources(client)
+			So(err, ShouldBeNil)
 		})
 	})
 }
@@ -632,7 +639,8 @@ func TestUsers(t *testing.T) {
 		})
 
 		Reset(func() {
-			deleteAllResources(client)
+			err := deleteAllResources(client)
+			So(err, ShouldBeNil)
 		})
 	})
 }
@@ -660,18 +668,21 @@ func TestRooms(t *testing.T) {
 		carolID, err := createUser(client)
 		So(err, ShouldBeNil)
 
-		Convey("we can create a room without providing an ID", func() {
+		Convey("we can create a room (without providing an ID)", func() {
 			roomName := randomString()
+			roomPNTitleOverride := randomString()
 
 			room, err := client.CreateRoom(ctx, CreateRoomOptions{
-				Name:       roomName,
-				Private:    true,
-				UserIDs:    []string{aliceID, bobID},
-				CreatorID:  aliceID,
-				CustomData: map[string]interface{}{"foo": "bar"},
+				Name:                          roomName,
+				PushNotificationTitleOverride: &roomPNTitleOverride,
+				Private:                       true,
+				UserIDs:                       []string{aliceID, bobID},
+				CreatorID:                     aliceID,
+				CustomData:                    map[string]interface{}{"foo": "bar"},
 			})
 			So(err, ShouldBeNil)
 			So(room.Name, ShouldEqual, roomName)
+			So(room.PushNotificationTitleOverride, ShouldResemble, &roomPNTitleOverride)
 			So(room.Private, ShouldEqual, true)
 			So(room.MemberUserIDs, shouldResembleUpToReordering, []string{aliceID, bobID})
 
@@ -680,16 +691,20 @@ func TestRooms(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(r.ID, ShouldEqual, room.ID)
 				So(r.Name, ShouldEqual, roomName)
+				So(r.PushNotificationTitleOverride, ShouldResemble, &roomPNTitleOverride)
 				So(r.Private, ShouldEqual, true)
 				So(r.MemberUserIDs, shouldResembleUpToReordering, []string{aliceID, bobID})
 				So(r.CustomData, ShouldResemble, map[string]interface{}{"foo": "bar"})
 			})
 
-			Convey("and update it", func() {
+			Convey("and update it to something else", func() {
 				newRoomName := randomString()
+				newRoomPNTitleOverride := randomString()
+
 				err := client.UpdateRoom(ctx, room.ID, UpdateRoomOptions{
-					Name:       &newRoomName,
-					CustomData: map[string]interface{}{"foo": "baz"},
+					Name:                          &newRoomName,
+					PushNotificationTitleOverride: &newRoomPNTitleOverride,
+					CustomData:                    map[string]interface{}{"foo": "baz"},
 				})
 				So(err, ShouldBeNil)
 
@@ -698,6 +713,29 @@ func TestRooms(t *testing.T) {
 					So(err, ShouldBeNil)
 					So(r.ID, ShouldEqual, room.ID)
 					So(r.Name, ShouldEqual, newRoomName)
+					So(r.PushNotificationTitleOverride, ShouldResemble, &newRoomPNTitleOverride)
+					So(r.Private, ShouldEqual, true)
+					So(r.MemberUserIDs, shouldResembleUpToReordering, []string{aliceID, bobID})
+					So(r.CustomData, ShouldResemble, map[string]interface{}{"foo": "baz"})
+				})
+			})
+
+			Convey("and explicitly remove push notifications override", func() {
+				newRoomName := randomString()
+
+				err := client.UpdateRoom(ctx, room.ID, UpdateRoomOptions{
+					Name:                          &newRoomName,
+					PushNotificationTitleOverride: &core.ExplicitlyResetPushNotificationTitleOverride,
+					CustomData:                    map[string]interface{}{"foo": "baz"},
+				})
+				So(err, ShouldBeNil)
+
+				Convey("and get it again", func() {
+					r, err := client.GetRoom(ctx, room.ID)
+					So(err, ShouldBeNil)
+					So(r.ID, ShouldEqual, room.ID)
+					So(r.Name, ShouldEqual, newRoomName)
+					So(r.PushNotificationTitleOverride, ShouldBeNil)
 					So(r.Private, ShouldEqual, true)
 					So(r.MemberUserIDs, shouldResembleUpToReordering, []string{aliceID, bobID})
 					So(r.CustomData, ShouldResemble, map[string]interface{}{"foo": "baz"})
@@ -805,7 +843,8 @@ func TestRooms(t *testing.T) {
 		})
 
 		Reset(func() {
-			deleteAllResources(client)
+			err := deleteAllResources(client)
+			So(err, ShouldBeNil)
 		})
 	})
 }
@@ -1025,7 +1064,8 @@ func TestMessages(t *testing.T) {
 		})
 
 		Reset(func() {
-			deleteAllResources(client)
+			err := deleteAllResources(client)
+			So(err, ShouldBeNil)
 		})
 	})
 }
