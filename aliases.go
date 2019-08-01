@@ -47,3 +47,5 @@ type (
 	Part                          = core.Part
 	Attachment                    = core.Attachment
 )
+
+var ExplicitlyResetPushNotificationTitleOverride = &core.ExplicitlyResetPushNotificationTitleOverride

@@ -15,7 +15,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pusher/chatkit-server-go/internal/core"
 	"github.com/pusher/pusher-platform-go/auth"
 	platformclient "github.com/pusher/pusher-platform-go/client"
 	. "github.com/smartystreets/goconvey/convey"
@@ -725,7 +724,7 @@ func TestRooms(t *testing.T) {
 
 				err := client.UpdateRoom(ctx, room.ID, UpdateRoomOptions{
 					Name:                          &newRoomName,
-					PushNotificationTitleOverride: &core.ExplicitlyResetPushNotificationTitleOverride,
+					PushNotificationTitleOverride: ExplicitlyResetPushNotificationTitleOverride,
 					CustomData:                    map[string]interface{}{"foo": "baz"},
 				})
 				So(err, ShouldBeNil)
