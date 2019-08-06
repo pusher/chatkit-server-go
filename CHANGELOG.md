@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased](https://github.com/pusher/chatkit-server-go/compare/2.1.1...HEAD)
 
+### Fixes
+
+- Return new type from GetRooms that better indicates that room members are
+  not returned
+
 ## [2.1.1](https://github.com/pusher/chatkit-server-go/compare/2.1.1...2.1.0)
 
 ### Fixes

@@ -278,7 +278,7 @@ func (c *Client) GetRoom(ctx context.Context, roomID string) (Room, error) {
 }
 
 // GetRooms retrieves a list of rooms based on the options provided.
-func (c *Client) GetRooms(ctx context.Context, options GetRoomsOptions) ([]Room, error) {
+func (c *Client) GetRooms(ctx context.Context, options GetRoomsOptions) ([]core.RoomWithoutMembers, error) {
 	return c.coreServiceV6.GetRooms(ctx, options)
 }
 
