@@ -17,15 +17,8 @@ type User struct {
 
 // Room represents a chatkit room.
 type Room struct {
-	ID                            string      `json:"id"`                                         // ID assigned to a room
-	CreatedByID                   string      `json:"created_by_id"`                              // User ID that created the room
-	Name                          string      `json:"name"`                                       // Name assigned to the room
-	PushNotificationTitleOverride *string     `json:"push_notification_title_override,omitempty"` // Optionally override Push Notification title
-	Private                       bool        `json:"private"`                                    // Indicates if room is private or not
-	MemberUserIDs                 []string    `json:"member_user_ids,omitempty"`                  // List of user id's in the room
-	CustomData                    interface{} `json:"custom_data,omitempty"`                      // Custom data that can be added to rooms
-	CreatedAt                     time.Time   `json:"created_at"`                                 // Creation timestamp
-	UpdatedAt                     time.Time   `json:"updated_at"`                                 // Updation timestamp
+	RoomWithoutMembers
+	MemberUserIDs []string `json:"member_user_ids,omitempty"` // List of user id's in the room
 }
 
 // RoomWithoutMembers represents a chatkit room without listing its members.
