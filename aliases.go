@@ -42,6 +42,7 @@ type (
 	FetchMultipartMessagesOptions = core.FetchMultipartMessagesOptions
 	User                          = core.User
 	Room                          = core.Room
+	RoomWithoutMembers            = core.RoomWithoutMembers
 	Message                       = core.Message
 	MultipartMessage              = core.MultipartMessage
 	Part                          = core.Part

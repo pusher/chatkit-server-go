@@ -35,7 +35,7 @@ type Service interface {
 
 	// Rooms
 	GetRoom(ctx context.Context, roomID string) (Room, error)
-	GetRooms(ctx context.Context, options GetRoomsOptions) ([]Room, error)
+	GetRooms(ctx context.Context, options GetRoomsOptions) ([]RoomWithoutMembers, error)
 	GetUserRooms(ctx context.Context, userID string) ([]Room, error)
 	GetUserJoinableRooms(ctx context.Context, userID string) ([]Room, error)
 	CreateRoom(ctx context.Context, options CreateRoomOptions) (Room, error)
@@ -271,7 +271,7 @@ func (cs *coreService) GetRoom(ctx context.Context, roomID string) (Room, error)
 }
 
 // GetRooms retrieves a list of rooms with the given parameters.
-func (cs *coreService) GetRooms(ctx context.Context, options GetRoomsOptions) ([]Room, error) {
+func (cs *coreService) GetRooms(ctx context.Context, options GetRoomsOptions) ([]RoomWithoutMembers, error) {
 	queryParams := url.Values{}
 	if options.FromID != nil {
 		queryParams.Add("from_id", *options.FromID)
@@ -293,7 +293,7 @@ func (cs *coreService) GetRooms(ctx context.Context, options GetRoomsOptions) ([
 	}
 	defer response.Body.Close()
 
-	var rooms []Room
+	var rooms []RoomWithoutMembers
 	err = common.DecodeResponseBody(response.Body, &rooms)
 	if err != nil {
 		return nil, err
