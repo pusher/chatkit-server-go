@@ -332,7 +332,7 @@ func TestAuthorizer(t *testing.T) {
 			So(err, ShouldBeNil)
 		})
 
-		Convey("it should be possible to retreive permissions for a global scoped role", func() {
+		Convey("it should be possible to retrieve permissions for a global scoped role", func() {
 			permissions, err := client.GetPermissionsForGlobalRole(context.Background(), globalRoleName)
 			So(err, ShouldBeNil)
 			So(permissions, shouldResembleUpToReordering, globalPermissions)
