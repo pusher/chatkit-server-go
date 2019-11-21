@@ -39,6 +39,9 @@ type (
 	NewAttachmentPart             = core.NewAttachmentPart
 	GetRoomMessagesOptions        = core.GetRoomMessagesOptions
 	DeleteMessageOptions          = core.DeleteMessageOptions
+	EditMessageOptions            = core.EditMessageOptions
+	EditSimpleMessageOptions      = core.EditSimpleMessageOptions
+	EditMultipartMessageOptions   = core.EditMultipartMessageOptions
 	FetchMultipartMessagesOptions = core.FetchMultipartMessagesOptions
 	User                          = core.User
 	Room                          = core.Room

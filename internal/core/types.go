@@ -145,6 +145,23 @@ type SendSimpleMessageOptions struct {
 	SenderID string
 }
 
+type EditMessageOptions = EditSimpleMessageOptions
+
+// EditSimpleMessageOption contains parameters to pass when editing an existing message.
+type EditSimpleMessageOptions struct {
+	RoomID    string
+	MessageID uint
+	SenderID  string
+	Text      string
+}
+
+type EditMultipartMessageOptions struct {
+	RoomID    string
+	MessageID uint
+	SenderID  string
+	Parts     []NewPart
+}
+
 type NewPart interface {
 	isNewPart()
 }

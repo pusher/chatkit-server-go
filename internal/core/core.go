@@ -59,6 +59,9 @@ type Service interface {
 		options FetchMultipartMessagesOptions,
 	) ([]MultipartMessage, error)
 	DeleteMessage(ctx context.Context, options DeleteMessageOptions) error
+	EditMessage(ctx context.Context, options EditMessageOptions) error
+	EditMultipartMessage(ctx context.Context, options EditMultipartMessageOptions) error
+	EditSimpleMessage(ctx context.Context, options EditSimpleMessageOptions) error
 
 	// Generic requests
 	Request(ctx context.Context, options client.RequestOptions) (*http.Response, error)
@@ -711,6 +714,112 @@ func (cs *coreService) DeleteMessage(ctx context.Context, options DeleteMessageO
 	})
 	if err != nil {
 		return nil
+	}
+	defer response.Body.Close()
+
+	return nil
+}
+
+// EditMessage edits an existing message in a room.
+func (cs *coreService) EditMessage(ctx context.Context, options EditMessageOptions) error {
+	if options.Text == "" {
+		return errors.New("You must provide some text for the message")
+	}
+
+	if options.SenderID == "" {
+		return errors.New("You must provide the ID of the user editing the message")
+	}
+
+	if options.RoomID == "" {
+		return errors.New("You must provide the ID of the room in which the message to edit belongs")
+	}
+
+	requestBody, err := common.CreateRequestBody(map[string]string{"text": options.Text})
+	if err != nil {
+		return err
+	}
+
+	response, err := common.RequestWithUserToken(
+		cs.underlyingInstance,
+		ctx,
+		options.SenderID,
+		client.RequestOptions{
+			Method: http.MethodPut,
+			Path:   fmt.Sprintf("/rooms/%s/messages/%d", options.RoomID, options.MessageID),
+			Body:   requestBody,
+		})
+	if err != nil {
+		return err
+	}
+	defer response.Body.Close()
+
+	return nil
+}
+
+// EditSimpleMessage edits an existing message in a room, replacing it with a simple message.
+func (cs *coreService) EditSimpleMessage(ctx context.Context, options EditSimpleMessageOptions) error {
+	return cs.EditMultipartMessage(ctx, EditMultipartMessageOptions{
+		RoomID:    options.RoomID,
+		MessageID: options.MessageID,
+		SenderID:  options.SenderID,
+		Parts:     []NewPart{NewInlinePart{Type: "text/plain", Content: options.Text}},
+	})
+}
+
+// EditMultipartMessage edits an existing message in a room, replacing it with a multipart message.
+func (cs *coreService) EditMultipartMessage(ctx context.Context, options EditMultipartMessageOptions) error {
+	if len(options.Parts) == 0 {
+		return errors.New("You must provide at least one message part")
+	}
+
+	if options.SenderID == "" {
+		return errors.New("You must provide the ID of the user editing the message")
+	}
+
+	if options.RoomID == "" {
+		return errors.New("You must provide the ID of the room in which the message to edit belongs")
+	}
+
+	requestParts := make([]interface{}, len(options.Parts))
+	g := errgroup.Group{}
+
+	for i, part := range options.Parts {
+		switch p := part.(type) {
+		case NewAttachmentPart:
+			i := i
+			g.Go(func() error {
+				uploadedPart, err := cs.uploadAttachment(ctx, options.SenderID, options.RoomID, p)
+				requestParts[i] = uploadedPart
+				return err
+			})
+		default:
+			requestParts[i] = part
+		}
+	}
+
+	if err := g.Wait(); err != nil {
+		return fmt.Errorf("Failed to upload attachment: %v", err)
+	}
+
+	requestBody, err := common.CreateRequestBody(
+		map[string]interface{}{"parts": requestParts},
+	)
+	if err != nil {
+		return err
+	}
+
+	response, err := common.RequestWithUserToken(
+		cs.underlyingInstance,
+		ctx,
+		options.SenderID,
+		client.RequestOptions{
+			Method: http.MethodPut,
+			Path:   fmt.Sprintf("/rooms/%s/messages/%d", options.RoomID, options.MessageID),
+			Body:   requestBody,
+		},
+	)
+	if err != nil {
+		return err
 	}
 	defer response.Body.Close()
 
