@@ -53,6 +53,10 @@ type Service interface {
 		roomID string,
 		options GetRoomMessagesOptions,
 	) ([]Message, error)
+	FetchMultipartMessage(
+		ctx context.Context,
+		options FetchMultipartMessageOptions,
+	) (MultipartMessage, error)
 	FetchMultipartMessages(
 		ctx context.Context,
 		roomID string,
@@ -726,6 +730,32 @@ func (cs *coreService) GetRoomMessages(
 	messages := []Message{}
 	err := cs.fetchMessages(ctx, roomID, options, &messages)
 	return messages, err
+}
+
+func (cs *coreService) FetchMultipartMessage(
+	ctx context.Context,
+	options FetchMultipartMessageOptions,
+) (MultipartMessage, error) {
+	response, err := common.RequestWithSuToken(
+		cs.underlyingInstance,
+		ctx,
+		client.RequestOptions{
+			Method: http.MethodGet,
+			Path:   fmt.Sprintf("/rooms/%s/messages/%d", options.RoomID, options.MessageID),
+		},
+	)
+	if err != nil {
+		return MultipartMessage{}, err
+	}
+	defer response.Body.Close()
+
+	var message MultipartMessage
+	err = common.DecodeResponseBody(response.Body, &message)
+	if err != nil {
+		return MultipartMessage{}, err
+	}
+
+	return message, nil
 }
 
 // FetchMultipartMessages fetches messages sent to a room based on the passed in options.
