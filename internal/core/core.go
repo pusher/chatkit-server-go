@@ -732,6 +732,7 @@ func (cs *coreService) GetRoomMessages(
 	return messages, err
 }
 
+// FetchMultipartMessage fetches a single message sent to a room based on the passed in options.
 func (cs *coreService) FetchMultipartMessage(
 	ctx context.Context,
 	options FetchMultipartMessageOptions,
