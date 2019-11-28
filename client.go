@@ -348,6 +348,7 @@ func (c *Client) GetRoomMessages(
 	return c.coreServiceV2.GetRoomMessages(ctx, roomID, options)
 }
 
+// FetchMultipartMessage retrieves a single message previously sent to a room based on the options provided.
 func (c *Client) FetchMultipartMessage(
 	ctx context.Context,
 	options FetchMultipartMessageOptions,
