@@ -1162,6 +1162,11 @@ func TestEditMessages(t *testing.T) {
 			})
 
 		})
+
+		Reset(func() {
+			err := deleteAllResources(client)
+			So(err, ShouldBeNil)
+		})
 	})
 
 }
