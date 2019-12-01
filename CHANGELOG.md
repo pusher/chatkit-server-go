@@ -5,7 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased](https://github.com/pusher/chatkit-server-go/compare/3.0.0...HEAD)
+## [Unreleased](https://github.com/pusher/chatkit-server-go/compare/3.1.0...HEAD)
+
+## [3.1.0](https://github.com/pusher/chatkit-server-go/compare/3.0.0...3.1.0)
+
+### Additions
+
+- Support for fetching a message by its message ID, via `FetchMultipartMessage`.
 
 ## [3.0.0](https://github.com/pusher/chatkit-server-go/compare/3.0.0...2.1.1)
 
@@ -25,7 +31,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Additions
 
 - Support for `PushNotificationTitleOverride` attribute in the Room model and
-corresponding Update and Create structs.
+  corresponding Update and Create structs.
 
 ## [2.0.0](https://github.com/pusher/chatkit-server-go/compare/1.2.0...2.0.0)
 
@@ -36,7 +42,7 @@ corresponding Update and Create structs.
 
 ### Changes
 
-- The `DeleteMessage` method now *requires* a room ID parameter, `RoomID`, and
+- The `DeleteMessage` method now _requires_ a room ID parameter, `RoomID`, and
   the `ID` parameter has been renamed to `MessageId` to avoid ambiguity.
 
 ## [1.2.0](https://github.com/pusher/chatkit-server-go/compare/1.1.0...1.2.0)
@@ -73,4 +79,4 @@ everything has changed and refer to the [GoDoc][].
 - `NewChatkitToken` has been added and essentially replaces `NewChatkitSUToken` and `NewChatkitUserToken`
 - `Authenticate` added to `Client`
 
-[GoDoc]: http://godoc.org/github.com/pusher/chatkit-server-go
+[godoc]: http://godoc.org/github.com/pusher/chatkit-server-go

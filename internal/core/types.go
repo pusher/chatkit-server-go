@@ -201,6 +201,12 @@ type uploadedAttachment struct {
 	ID string `json:"id"`
 }
 
+// FetchMultipartMessageOptions contains parameters to pass when fetching a single message from a room.
+type FetchMultipartMessageOptions struct {
+	RoomID    string
+	MessageID uint
+}
+
 type fetchMessagesOptions struct {
 	InitialID *uint   // Starting ID of messages to retrieve
 	Direction *string // One of older or newer

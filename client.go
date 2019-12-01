@@ -168,7 +168,7 @@ func (c *Client) GetPermissionsForGlobalRole(
 	return c.authorizerService.GetPermissionsForGlobalRole(ctx, roleName)
 }
 
-// GetPermissionsForRoomRole returns permisisons associated with a previously created room role.
+// GetPermissionsForRoomRole returns permissions associated with a previously created room role.
 func (c *Client) GetPermissionsForRoomRole(
 	ctx context.Context,
 	roleName string,
@@ -176,7 +176,7 @@ func (c *Client) GetPermissionsForRoomRole(
 	return c.authorizerService.GetPermissionsForRoomRole(ctx, roleName)
 }
 
-// UpdatePermissionsForGlobalRole allows adding or removing permissions from a previosuly created
+// UpdatePermissionsForGlobalRole allows adding or removing permissions from a previously created
 // globally scoped role.
 func (c *Client) UpdatePermissionsForGlobalRole(
 	ctx context.Context,
@@ -308,7 +308,7 @@ func (c *Client) DeleteRoom(ctx context.Context, roomID string) error {
 	return c.coreServiceV6.DeleteRoom(ctx, roomID)
 }
 
-// AddUsersToRoom adds new users to an exising room.
+// AddUsersToRoom adds new users to an existing room.
 func (c *Client) AddUsersToRoom(ctx context.Context, roomID string, userIDs []string) error {
 	return c.coreServiceV6.AddUsersToRoom(ctx, roomID, userIDs)
 }
@@ -346,6 +346,14 @@ func (c *Client) GetRoomMessages(
 	options GetRoomMessagesOptions,
 ) ([]Message, error) {
 	return c.coreServiceV2.GetRoomMessages(ctx, roomID, options)
+}
+
+// FetchMultipartMessage retrieves a single message previously sent to a room based on the options provided.
+func (c *Client) FetchMultipartMessage(
+	ctx context.Context,
+	options FetchMultipartMessageOptions,
+) (MultipartMessage, error) {
+	return c.coreServiceV6.FetchMultipartMessage(ctx, options)
 }
 
 // FetchMultipartMessages retrieves messages previously sent to a room based on

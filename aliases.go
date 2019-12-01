@@ -42,6 +42,7 @@ type (
 	EditMessageOptions            = core.EditMessageOptions
 	EditSimpleMessageOptions      = core.EditSimpleMessageOptions
 	EditMultipartMessageOptions   = core.EditMultipartMessageOptions
+	FetchMultipartMessageOptions  = core.FetchMultipartMessageOptions
 	FetchMultipartMessagesOptions = core.FetchMultipartMessagesOptions
 	User                          = core.User
 	Room                          = core.Room

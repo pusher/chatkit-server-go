@@ -333,7 +333,7 @@ func TestAuthorizer(t *testing.T) {
 			So(err, ShouldBeNil)
 		})
 
-		Convey("it should be possible to retreive permissions for a global scoped role", func() {
+		Convey("it should be possible to retrieve permissions for a global scoped role", func() {
 			permissions, err := client.GetPermissionsForGlobalRole(context.Background(), globalRoleName)
 			So(err, ShouldBeNil)
 			So(permissions, shouldResembleUpToReordering, globalPermissions)
@@ -902,7 +902,7 @@ func TestMessages(t *testing.T) {
 			})
 			So(err, ShouldBeNil)
 
-			Convey("and fetch them", func() {
+			Convey("and fetch many of them", func() {
 				limit := uint(2)
 				messagesPage1, err := client.GetRoomMessages(ctx, room.ID, GetRoomMessagesOptions{
 					Limit: &limit,
@@ -925,6 +925,27 @@ func TestMessages(t *testing.T) {
 				So(messagesPage2[1].Text, ShouldEqual, "one")
 			})
 
+			Convey("and fetch one of them", func() {
+				message, err := client.FetchMultipartMessage(ctx, FetchMultipartMessageOptions{
+					MessageID: messageID3,
+					RoomID:    room.ID,
+				})
+				So(err, ShouldBeNil)
+				So(message.ID, ShouldEqual, messageID3)
+				So(message.Parts[0].Type, ShouldEqual, "text/plain")
+				So(*message.Parts[0].Content, ShouldEqual, "three")
+			})
+
+			Convey("but attempting to fetch a non-existent message returns a 404 error", func() {
+				message, err := client.FetchMultipartMessage(ctx, FetchMultipartMessageOptions{
+					MessageID: 888,
+					RoomID:    room.ID,
+				})
+				So(err, ShouldNotBeNil)
+				So(err.(*ErrorResponse).Status, ShouldEqual, 404)
+				So(message, ShouldResemble, MultipartMessage{})
+			})
+
 			Convey("and delete one of them", func() {
 				err := client.DeleteMessage(ctx, DeleteMessageOptions{
 					RoomID:    room.ID,
@@ -944,6 +965,16 @@ func TestMessages(t *testing.T) {
 				So(messages[1].Text, ShouldEqual, "two")
 				So(messages[2].ID, ShouldEqual, messageID1)
 				So(messages[2].Text, ShouldEqual, "one")
+
+				Convey("and attempting to retrieve the deleted message returns a 404 error", func() {
+					message, err := client.FetchMultipartMessage(ctx, FetchMultipartMessageOptions{
+						MessageID: messageID3,
+						RoomID:    room.ID,
+					})
+					So(err, ShouldNotBeNil)
+					So(err.(*ErrorResponse).Status, ShouldEqual, 404)
+					So(message, ShouldResemble, MultipartMessage{})
+				})
 			})
 		})
 
