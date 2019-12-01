@@ -303,6 +303,7 @@ func TestAuthorizer(t *testing.T) {
 			Name:        roomRoleName,
 			Permissions: roomPermissions,
 		})
+		So(err, ShouldBeNil)
 
 		Convey("it should be possible to fetch them", func() {
 			roles, err := client.GetRoles(context.Background())
