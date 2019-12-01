@@ -184,7 +184,7 @@ func (cs *coreService) CreateUser(ctx context.Context, options CreateUserOptions
 // CreateUsers creates users in a batch.
 // A maximum of 10 users can be created per batch.
 func (cs *coreService) CreateUsers(ctx context.Context, users []CreateUserOptions) error {
-	if users == nil || len(users) == 0 {
+	if len(users) == 0 {
 		return errors.New("You must provide a list of users to create")
 	}
 
@@ -438,7 +438,7 @@ func (cs *coreService) DeleteRoom(ctx context.Context, roomID string) error {
 // AddUsersToRoom adds users to an existing room.
 // The maximum number of users that can be added in a single request is 10.
 func (cs *coreService) AddUsersToRoom(ctx context.Context, roomID string, userIDs []string) error {
-	if userIDs == nil || len(userIDs) == 0 {
+	if len(userIDs) == 0 {
 		return errors.New("You must provide a list of IDs of the users you want to add to the room")
 	}
 
@@ -463,7 +463,7 @@ func (cs *coreService) AddUsersToRoom(ctx context.Context, roomID string, userID
 // RemoveUsersFromRoom removes a list of users from the room.
 // The maximum number of users that can be removed in a single request is 10.
 func (cs *coreService) RemoveUsersFromRoom(ctx context.Context, roomID string, userIDs []string) error {
-	if userIDs == nil || len(userIDs) == 0 {
+	if len(userIDs) == 0 {
 		return errors.New("You must provide a list of IDs of the users you want to remove from the room")
 	}
 
