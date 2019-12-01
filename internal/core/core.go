@@ -571,14 +571,14 @@ func (cs *coreService) SendMultipartMessage(
 	}
 
 	requestParts := make([]interface{}, len(options.Parts))
-	g := errgroup.Group{}
+	g, gCtx := errgroup.WithContext(ctx)
 
 	for i, part := range options.Parts {
 		switch p := part.(type) {
 		case NewAttachmentPart:
 			i := i
 			g.Go(func() error {
-				uploadedPart, err := cs.uploadAttachment(ctx, options.SenderID, options.RoomID, p)
+				uploadedPart, err := cs.uploadAttachment(gCtx, options.SenderID, options.RoomID, p)
 				requestParts[i] = uploadedPart
 				return err
 			})
@@ -825,14 +825,14 @@ func (cs *coreService) EditMultipartMessage(ctx context.Context, options EditMul
 	}
 
 	requestParts := make([]interface{}, len(options.Parts))
-	g := errgroup.Group{}
+	g, gCtx := errgroup.WithContext(ctx)
 
 	for i, part := range options.Parts {
 		switch p := part.(type) {
 		case NewAttachmentPart:
 			i := i
 			g.Go(func() error {
-				uploadedPart, err := cs.uploadAttachment(ctx, options.SenderID, options.RoomID, p)
+				uploadedPart, err := cs.uploadAttachment(gCtx, options.SenderID, options.RoomID, p)
 				requestParts[i] = uploadedPart
 				return err
 			})
