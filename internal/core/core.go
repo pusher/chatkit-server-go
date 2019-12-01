@@ -86,7 +86,7 @@ func (cs *coreService) GetUser(ctx context.Context, userID string) (User, error)
 
 	response, err := common.RequestWithSuToken(cs.underlyingInstance, ctx, client.RequestOptions{
 		Method: http.MethodGet,
-		Path:   fmt.Sprintf("/users/%s", userID),
+		Path:   fmt.Sprintf("/users/%s", url.PathEscape(userID)),
 	})
 	if response != nil {
 		defer response.Body.Close()
@@ -231,7 +231,7 @@ func (cs *coreService) UpdateUser(
 
 	response, err := common.RequestWithUserToken(cs.underlyingInstance, ctx, userID, client.RequestOptions{
 		Method: http.MethodPut,
-		Path:   fmt.Sprintf("/users/%s", userID),
+		Path:   fmt.Sprintf("/users/%s", url.PathEscape(userID)),
 		Body:   requestBody,
 	})
 	if response != nil {
@@ -253,7 +253,7 @@ func (cs *coreService) DeleteUser(ctx context.Context, userID string) error {
 
 	response, err := common.RequestWithSuToken(cs.underlyingInstance, ctx, client.RequestOptions{
 		Method: http.MethodDelete,
-		Path:   fmt.Sprintf("/users/%s", userID),
+		Path:   fmt.Sprintf("/users/%s", url.PathEscape(userID)),
 	})
 	if response != nil {
 		defer response.Body.Close()
@@ -269,7 +269,7 @@ func (cs *coreService) DeleteUser(ctx context.Context, userID string) error {
 func (cs *coreService) GetRoom(ctx context.Context, roomID string) (Room, error) {
 	response, err := common.RequestWithSuToken(cs.underlyingInstance, ctx, client.RequestOptions{
 		Method: http.MethodGet,
-		Path:   fmt.Sprintf("/rooms/%s", roomID),
+		Path:   fmt.Sprintf("/rooms/%s", url.PathEscape(roomID)),
 	})
 	if response != nil {
 		defer response.Body.Close()
@@ -349,7 +349,7 @@ func (cs *coreService) getRoomsForUser(
 
 	response, err := common.RequestWithSuToken(cs.underlyingInstance, ctx, client.RequestOptions{
 		Method:      http.MethodGet,
-		Path:        fmt.Sprintf("/users/%s/rooms", userID),
+		Path:        fmt.Sprintf("/users/%s/rooms", url.PathEscape(userID)),
 		QueryParams: &queryParams,
 	})
 	if response != nil {
@@ -430,7 +430,7 @@ func (cs *coreService) UpdateRoom(ctx context.Context, roomID string, options Up
 
 	response, err := common.RequestWithSuToken(cs.underlyingInstance, ctx, client.RequestOptions{
 		Method: http.MethodPut,
-		Path:   fmt.Sprintf("/rooms/%s", roomID),
+		Path:   fmt.Sprintf("/rooms/%s", url.PathEscape(roomID)),
 		Body:   requestBody,
 	})
 	if response != nil {
@@ -447,7 +447,7 @@ func (cs *coreService) UpdateRoom(ctx context.Context, roomID string, options Up
 func (cs *coreService) DeleteRoom(ctx context.Context, roomID string) error {
 	response, err := common.RequestWithSuToken(cs.underlyingInstance, ctx, client.RequestOptions{
 		Method: http.MethodDelete,
-		Path:   fmt.Sprintf("/rooms/%s", roomID),
+		Path:   fmt.Sprintf("/rooms/%s", url.PathEscape(roomID)),
 	})
 	if response != nil {
 		defer response.Body.Close()
@@ -473,7 +473,7 @@ func (cs *coreService) AddUsersToRoom(ctx context.Context, roomID string, userID
 
 	response, err := common.RequestWithSuToken(cs.underlyingInstance, ctx, client.RequestOptions{
 		Method: http.MethodPut,
-		Path:   fmt.Sprintf("/rooms/%s/users/add", roomID),
+		Path:   fmt.Sprintf("/rooms/%s/users/add", url.PathEscape(roomID)),
 		Body:   requestBody,
 	})
 	if response != nil {
@@ -500,7 +500,7 @@ func (cs *coreService) RemoveUsersFromRoom(ctx context.Context, roomID string, u
 
 	response, err := common.RequestWithSuToken(cs.underlyingInstance, ctx, client.RequestOptions{
 		Method: http.MethodPut,
-		Path:   fmt.Sprintf("/rooms/%s/users/remove", roomID),
+		Path:   fmt.Sprintf("/rooms/%s/users/remove", url.PathEscape(roomID)),
 		Body:   requestBody,
 	})
 	if response != nil {
@@ -534,7 +534,7 @@ func (cs *coreService) SendMessage(ctx context.Context, options SendMessageOptio
 		options.SenderID,
 		client.RequestOptions{
 			Method: http.MethodPost,
-			Path:   fmt.Sprintf("/rooms/%s/messages", options.RoomID),
+			Path:   fmt.Sprintf("/rooms/%s/messages", url.PathEscape(options.RoomID)),
 			Body:   requestBody,
 		})
 	if response != nil {
@@ -600,7 +600,7 @@ func (cs *coreService) SendMultipartMessage(
 		options.SenderID,
 		client.RequestOptions{
 			Method: http.MethodPost,
-			Path:   fmt.Sprintf("/rooms/%s/messages", options.RoomID),
+			Path:   fmt.Sprintf("/rooms/%s/messages", url.PathEscape(options.RoomID)),
 			Body:   requestBody,
 		},
 	)
@@ -681,7 +681,7 @@ func (cs *coreService) requestPresignedURL(
 		senderID,
 		client.RequestOptions{
 			Method: http.MethodPost,
-			Path:   fmt.Sprintf("/rooms/%s/attachments", roomID),
+			Path:   fmt.Sprintf("/rooms/%s/attachments", url.PathEscape(roomID)),
 			Body:   body,
 		},
 	)
@@ -746,7 +746,7 @@ func (cs *coreService) SendSimpleMessage(
 func (cs *coreService) DeleteMessage(ctx context.Context, options DeleteMessageOptions) error {
 	response, err := common.RequestWithSuToken(cs.underlyingInstance, ctx, client.RequestOptions{
 		Method: http.MethodDelete,
-		Path:   fmt.Sprintf("/rooms/%s/messages/%d", options.RoomID, options.MessageID),
+		Path:   fmt.Sprintf("/rooms/%s/messages/%d", url.PathEscape(options.RoomID), options.MessageID),
 	})
 	if response != nil {
 		defer response.Body.Close()
@@ -783,7 +783,7 @@ func (cs *coreService) EditMessage(ctx context.Context, options EditMessageOptio
 		options.SenderID,
 		client.RequestOptions{
 			Method: http.MethodPut,
-			Path:   fmt.Sprintf("/rooms/%s/messages/%d", options.RoomID, options.MessageID),
+			Path:   fmt.Sprintf("/rooms/%s/messages/%d", url.PathEscape(options.RoomID), options.MessageID),
 			Body:   requestBody,
 		})
 	if response != nil {
@@ -854,7 +854,7 @@ func (cs *coreService) EditMultipartMessage(ctx context.Context, options EditMul
 		options.SenderID,
 		client.RequestOptions{
 			Method: http.MethodPut,
-			Path:   fmt.Sprintf("/rooms/%s/messages/%d", options.RoomID, options.MessageID),
+			Path:   fmt.Sprintf("/rooms/%s/messages/%d", url.PathEscape(options.RoomID), options.MessageID),
 			Body:   requestBody,
 		},
 	)
@@ -911,7 +911,7 @@ func (cs *coreService) fetchMessages(
 
 	response, err := common.RequestWithSuToken(cs.underlyingInstance, ctx, client.RequestOptions{
 		Method:      http.MethodGet,
-		Path:        fmt.Sprintf("/rooms/%s/messages", roomID),
+		Path:        fmt.Sprintf("/rooms/%s/messages", url.PathEscape(roomID)),
 		QueryParams: &queryParams,
 	})
 	if response != nil {
