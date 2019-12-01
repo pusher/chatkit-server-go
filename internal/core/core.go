@@ -88,10 +88,12 @@ func (cs *coreService) GetUser(ctx context.Context, userID string) (User, error)
 		Method: http.MethodGet,
 		Path:   fmt.Sprintf("/users/%s", userID),
 	})
+	if response != nil {
+		defer response.Body.Close()
+	}
 	if err != nil {
 		return User{}, err
 	}
-	defer response.Body.Close()
 
 	var user User
 	err = common.DecodeResponseBody(response.Body, &user)
@@ -139,10 +141,12 @@ func (cs *coreService) GetUsersByID(ctx context.Context, userIDs []string) ([]Us
 			"id": userIDs,
 		},
 	})
+	if response != nil {
+		defer response.Body.Close()
+	}
 	if err != nil {
 		return nil, err
 	}
-	defer response.Body.Close()
 
 	var users []User
 	err = common.DecodeResponseBody(response.Body, &users)
@@ -173,10 +177,12 @@ func (cs *coreService) CreateUser(ctx context.Context, options CreateUserOptions
 		Path:   "/users",
 		Body:   requestBody,
 	})
+	if response != nil {
+		defer response.Body.Close()
+	}
 	if err != nil {
 		return err
 	}
-	defer response.Body.Close()
 
 	return nil
 }
@@ -198,10 +204,12 @@ func (cs *coreService) CreateUsers(ctx context.Context, users []CreateUserOption
 		Path:   "/batch_users",
 		Body:   requestBody,
 	})
+	if response != nil {
+		defer response.Body.Close()
+	}
 	if err != nil {
 		return err
 	}
-	defer response.Body.Close()
 
 	return nil
 }
@@ -226,10 +234,12 @@ func (cs *coreService) UpdateUser(
 		Path:   fmt.Sprintf("/users/%s", userID),
 		Body:   requestBody,
 	})
+	if response != nil {
+		defer response.Body.Close()
+	}
 	if err != nil {
 		return err
 	}
-	defer response.Body.Close()
 
 	return nil
 }
@@ -245,10 +255,12 @@ func (cs *coreService) DeleteUser(ctx context.Context, userID string) error {
 		Method: http.MethodDelete,
 		Path:   fmt.Sprintf("/users/%s", userID),
 	})
+	if response != nil {
+		defer response.Body.Close()
+	}
 	if err != nil {
 		return err
 	}
-	defer response.Body.Close()
 
 	return nil
 }
@@ -259,10 +271,12 @@ func (cs *coreService) GetRoom(ctx context.Context, roomID string) (Room, error)
 		Method: http.MethodGet,
 		Path:   fmt.Sprintf("/rooms/%s", roomID),
 	})
+	if response != nil {
+		defer response.Body.Close()
+	}
 	if err != nil {
 		return Room{}, err
 	}
-	defer response.Body.Close()
 
 	var room Room
 	err = common.DecodeResponseBody(response.Body, &room)
@@ -291,10 +305,12 @@ func (cs *coreService) GetRooms(ctx context.Context, options GetRoomsOptions) ([
 		Path:        "/rooms",
 		QueryParams: &queryParams,
 	})
+	if response != nil {
+		defer response.Body.Close()
+	}
 	if err != nil {
 		return nil, err
 	}
-	defer response.Body.Close()
 
 	var rooms []RoomWithoutMembers
 	err = common.DecodeResponseBody(response.Body, &rooms)
@@ -336,10 +352,12 @@ func (cs *coreService) getRoomsForUser(
 		Path:        fmt.Sprintf("/users/%s/rooms", userID),
 		QueryParams: &queryParams,
 	})
+	if response != nil {
+		defer response.Body.Close()
+	}
 	if err != nil {
 		return nil, err
 	}
-	defer response.Body.Close()
 
 	var rooms []Room
 	err = common.DecodeResponseBody(response.Body, &rooms)
@@ -374,10 +392,12 @@ func (cs *coreService) CreateRoom(ctx context.Context, options CreateRoomOptions
 			Body:   requestBody,
 		},
 	)
+	if response != nil {
+		defer response.Body.Close()
+	}
 	if err != nil {
 		return Room{}, err
 	}
-	defer response.Body.Close()
 
 	var room Room
 	err = common.DecodeResponseBody(response.Body, &room)
@@ -413,10 +433,12 @@ func (cs *coreService) UpdateRoom(ctx context.Context, roomID string, options Up
 		Path:   fmt.Sprintf("/rooms/%s", roomID),
 		Body:   requestBody,
 	})
+	if response != nil {
+		defer response.Body.Close()
+	}
 	if err != nil {
 		return err
 	}
-	defer response.Body.Close()
 
 	return nil
 }
@@ -427,10 +449,12 @@ func (cs *coreService) DeleteRoom(ctx context.Context, roomID string) error {
 		Method: http.MethodDelete,
 		Path:   fmt.Sprintf("/rooms/%s", roomID),
 	})
+	if response != nil {
+		defer response.Body.Close()
+	}
 	if err != nil {
 		return err
 	}
-	defer response.Body.Close()
 
 	return nil
 }
@@ -452,10 +476,12 @@ func (cs *coreService) AddUsersToRoom(ctx context.Context, roomID string, userID
 		Path:   fmt.Sprintf("/rooms/%s/users/add", roomID),
 		Body:   requestBody,
 	})
+	if response != nil {
+		defer response.Body.Close()
+	}
 	if err != nil {
 		return err
 	}
-	defer response.Body.Close()
 
 	return nil
 }
@@ -477,10 +503,12 @@ func (cs *coreService) RemoveUsersFromRoom(ctx context.Context, roomID string, u
 		Path:   fmt.Sprintf("/rooms/%s/users/remove", roomID),
 		Body:   requestBody,
 	})
+	if response != nil {
+		defer response.Body.Close()
+	}
 	if err != nil {
 		return err
 	}
-	defer response.Body.Close()
 
 	return nil
 }
@@ -509,10 +537,12 @@ func (cs *coreService) SendMessage(ctx context.Context, options SendMessageOptio
 			Path:   fmt.Sprintf("/rooms/%s/messages", options.RoomID),
 			Body:   requestBody,
 		})
+	if response != nil {
+		defer response.Body.Close()
+	}
 	if err != nil {
 		return 0, err
 	}
-	defer response.Body.Close()
 
 	var messageResponse map[string]uint
 	err = common.DecodeResponseBody(response.Body, &messageResponse)
@@ -574,10 +604,12 @@ func (cs *coreService) SendMultipartMessage(
 			Body:   requestBody,
 		},
 	)
+	if response != nil {
+		defer response.Body.Close()
+	}
 	if err != nil {
 		return 0, err
 	}
-	defer response.Body.Close()
 
 	var messageResponse map[string]uint
 	err = common.DecodeResponseBody(response.Body, &messageResponse)
@@ -653,10 +685,12 @@ func (cs *coreService) requestPresignedURL(
 			Body:   body,
 		},
 	)
+	if res != nil {
+		defer res.Body.Close()
+	}
 	if err != nil {
 		return "", "", err
 	}
-	defer res.Body.Close()
 
 	var resBody map[string]string
 	if err := common.DecodeResponseBody(res.Body, &resBody); err != nil {
@@ -683,10 +717,12 @@ func (cs *coreService) uploadToURL(
 	req.Header.Add("content-length", strconv.Itoa(contentLength))
 
 	res, err := client.Do(req.WithContext(ctx))
+	if res != nil {
+		defer res.Body.Close()
+	}
 	if err != nil {
 		return err
 	}
-	defer res.Body.Close()
 	if res.StatusCode < 200 || res.StatusCode >= 300 {
 		return fmt.Errorf("unexpected status: %v", res.Status)
 	}
@@ -712,10 +748,12 @@ func (cs *coreService) DeleteMessage(ctx context.Context, options DeleteMessageO
 		Method: http.MethodDelete,
 		Path:   fmt.Sprintf("/rooms/%s/messages/%d", options.RoomID, options.MessageID),
 	})
+	if response != nil {
+		defer response.Body.Close()
+	}
 	if err != nil {
 		return nil
 	}
-	defer response.Body.Close()
 
 	return nil
 }
@@ -748,10 +786,12 @@ func (cs *coreService) EditMessage(ctx context.Context, options EditMessageOptio
 			Path:   fmt.Sprintf("/rooms/%s/messages/%d", options.RoomID, options.MessageID),
 			Body:   requestBody,
 		})
+	if response != nil {
+		defer response.Body.Close()
+	}
 	if err != nil {
 		return err
 	}
-	defer response.Body.Close()
 
 	return nil
 }
@@ -818,10 +858,12 @@ func (cs *coreService) EditMultipartMessage(ctx context.Context, options EditMul
 			Body:   requestBody,
 		},
 	)
+	if response != nil {
+		defer response.Body.Close()
+	}
 	if err != nil {
 		return err
 	}
-	defer response.Body.Close()
 
 	return nil
 }
@@ -872,10 +914,12 @@ func (cs *coreService) fetchMessages(
 		Path:        fmt.Sprintf("/rooms/%s/messages", roomID),
 		QueryParams: &queryParams,
 	})
+	if response != nil {
+		defer response.Body.Close()
+	}
 	if err != nil {
 		return err
 	}
-	defer response.Body.Close()
 
 	err = common.DecodeResponseBody(response.Body, target)
 	if err != nil {
