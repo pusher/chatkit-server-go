@@ -303,6 +303,7 @@ func TestAuthorizer(t *testing.T) {
 			Name:        roomRoleName,
 			Permissions: roomPermissions,
 		})
+		So(err, ShouldBeNil)
 
 		Convey("it should be possible to fetch them", func() {
 			roles, err := client.GetRoles(context.Background())
@@ -1076,21 +1077,6 @@ func TestMessages(t *testing.T) {
 				So(messages[0].Parts[4].Attachment.CustomData, ShouldBeNil)
 				So(messages[0].Parts[4].Attachment.DownloadURL, ShouldNotEqual, "")
 			})
-
-			Convey("and delete it", func() {
-				err := client.DeleteMessage(ctx, DeleteMessageOptions{
-					RoomID:    room.ID,
-					MessageID: messageID,
-				})
-				So(err, ShouldBeNil)
-
-				limit := uint(1)
-				messages, err := client.GetRoomMessages(ctx, room.ID, GetRoomMessagesOptions{
-					Limit: &limit,
-				})
-				So(err, ShouldBeNil)
-				So(len(messages), ShouldEqual, 0)
-			})
 		})
 
 		Reset(func() {
@@ -1098,4 +1084,89 @@ func TestMessages(t *testing.T) {
 			So(err, ShouldBeNil)
 		})
 	})
+}
+
+func TestEditMessages(t *testing.T) {
+	ctx := context.Background()
+
+	config, err := getConfig()
+	if err != nil {
+		t.Fatalf("Failed to get test config: %s", err.Error())
+	}
+
+	client, err := NewClient(config.instanceLocator, config.key)
+	if err != nil {
+		t.Fatalf("Failed to create client: %s", err.Error())
+	}
+
+	Convey("Given a user and a room with messages", t, func() {
+		userID, err := createUser(client)
+		So(err, ShouldBeNil)
+
+		room, err := client.CreateRoom(ctx, CreateRoomOptions{
+			Name:      randomString(),
+			CreatorID: userID,
+		})
+		So(err, ShouldBeNil)
+
+		messageID1, err := client.SendMessage(ctx, SendMessageOptions{
+			RoomID:   room.ID,
+			Text:     "one",
+			SenderID: userID,
+		})
+		So(err, ShouldBeNil)
+
+		messageID2, err := client.SendSimpleMessage(ctx, SendSimpleMessageOptions{
+			RoomID:   room.ID,
+			Text:     "two",
+			SenderID: userID,
+		})
+		So(err, ShouldBeNil)
+
+		messageID3, err := client.SendMultipartMessage(ctx, SendMultipartMessageOptions{
+			RoomID:   room.ID,
+			SenderID: userID,
+			Parts: []NewPart{
+				NewInlinePart{Type: "text/plain", Content: "three"},
+			}})
+		So(err, ShouldBeNil)
+
+		Convey("Messages can be edited", func() {
+			Convey("Messages can be edited using the v2 api", func() {
+				err := client.EditMessage(ctx, EditMessageOptions{
+					RoomID:    room.ID,
+					MessageID: messageID1,
+					Text:      "one-edited",
+					SenderID:  userID,
+				})
+				So(err, ShouldBeNil)
+			})
+			Convey("Messages can be edited using simple multipart messages", func() {
+				err := client.EditSimpleMessage(ctx, EditSimpleMessageOptions{
+					RoomID:    room.ID,
+					MessageID: messageID2,
+					Text:      "two-edited",
+					SenderID:  userID,
+				})
+				So(err, ShouldBeNil)
+			})
+			Convey("Messages can be edited using multipart messages", func() {
+				err := client.EditMultipartMessage(ctx, EditMultipartMessageOptions{
+					RoomID:    room.ID,
+					MessageID: messageID3,
+					SenderID:  userID,
+					Parts: []NewPart{
+						NewInlinePart{Type: "text/plain", Content: "three-edited"},
+					}})
+				So(err, ShouldBeNil)
+			})
+
+		})
+
+		Reset(func() {
+			err := deleteAllResources(client)
+			So(err, ShouldBeNil)
+		})
+	})
+
 }

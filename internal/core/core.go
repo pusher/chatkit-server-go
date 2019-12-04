@@ -63,6 +63,9 @@ type Service interface {
 		options FetchMultipartMessagesOptions,
 	) ([]MultipartMessage, error)
 	DeleteMessage(ctx context.Context, options DeleteMessageOptions) error
+	EditMessage(ctx context.Context, options EditMessageOptions) error
+	EditMultipartMessage(ctx context.Context, options EditMultipartMessageOptions) error
+	EditSimpleMessage(ctx context.Context, options EditSimpleMessageOptions) error
 
 	// Generic requests
 	Request(ctx context.Context, options client.RequestOptions) (*http.Response, error)
@@ -87,12 +90,14 @@ func (cs *coreService) GetUser(ctx context.Context, userID string) (User, error)
 
 	response, err := common.RequestWithSuToken(cs.underlyingInstance, ctx, client.RequestOptions{
 		Method: http.MethodGet,
-		Path:   fmt.Sprintf("/users/%s", userID),
+		Path:   fmt.Sprintf("/users/%s", url.PathEscape(userID)),
 	})
+	if response != nil {
+		defer response.Body.Close()
+	}
 	if err != nil {
 		return User{}, err
 	}
-	defer response.Body.Close()
 
 	var user User
 	err = common.DecodeResponseBody(response.Body, &user)
@@ -140,10 +145,12 @@ func (cs *coreService) GetUsersByID(ctx context.Context, userIDs []string) ([]Us
 			"id": userIDs,
 		},
 	})
+	if response != nil {
+		defer response.Body.Close()
+	}
 	if err != nil {
 		return nil, err
 	}
-	defer response.Body.Close()
 
 	var users []User
 	err = common.DecodeResponseBody(response.Body, &users)
@@ -174,10 +181,12 @@ func (cs *coreService) CreateUser(ctx context.Context, options CreateUserOptions
 		Path:   "/users",
 		Body:   requestBody,
 	})
+	if response != nil {
+		defer response.Body.Close()
+	}
 	if err != nil {
 		return err
 	}
-	defer response.Body.Close()
 
 	return nil
 }
@@ -199,10 +208,12 @@ func (cs *coreService) CreateUsers(ctx context.Context, users []CreateUserOption
 		Path:   "/batch_users",
 		Body:   requestBody,
 	})
+	if response != nil {
+		defer response.Body.Close()
+	}
 	if err != nil {
 		return err
 	}
-	defer response.Body.Close()
 
 	return nil
 }
@@ -224,13 +235,15 @@ func (cs *coreService) UpdateUser(
 
 	response, err := common.RequestWithUserToken(cs.underlyingInstance, ctx, userID, client.RequestOptions{
 		Method: http.MethodPut,
-		Path:   fmt.Sprintf("/users/%s", userID),
+		Path:   fmt.Sprintf("/users/%s", url.PathEscape(userID)),
 		Body:   requestBody,
 	})
+	if response != nil {
+		defer response.Body.Close()
+	}
 	if err != nil {
 		return err
 	}
-	defer response.Body.Close()
 
 	return nil
 }
@@ -244,12 +257,14 @@ func (cs *coreService) DeleteUser(ctx context.Context, userID string) error {
 
 	response, err := common.RequestWithSuToken(cs.underlyingInstance, ctx, client.RequestOptions{
 		Method: http.MethodDelete,
-		Path:   fmt.Sprintf("/users/%s", userID),
+		Path:   fmt.Sprintf("/users/%s", url.PathEscape(userID)),
 	})
+	if response != nil {
+		defer response.Body.Close()
+	}
 	if err != nil {
 		return err
 	}
-	defer response.Body.Close()
 
 	return nil
 }
@@ -258,12 +273,14 @@ func (cs *coreService) DeleteUser(ctx context.Context, userID string) error {
 func (cs *coreService) GetRoom(ctx context.Context, roomID string) (Room, error) {
 	response, err := common.RequestWithSuToken(cs.underlyingInstance, ctx, client.RequestOptions{
 		Method: http.MethodGet,
-		Path:   fmt.Sprintf("/rooms/%s", roomID),
+		Path:   fmt.Sprintf("/rooms/%s", url.PathEscape(roomID)),
 	})
+	if response != nil {
+		defer response.Body.Close()
+	}
 	if err != nil {
 		return Room{}, err
 	}
-	defer response.Body.Close()
 
 	var room Room
 	err = common.DecodeResponseBody(response.Body, &room)
@@ -292,10 +309,12 @@ func (cs *coreService) GetRooms(ctx context.Context, options GetRoomsOptions) ([
 		Path:        "/rooms",
 		QueryParams: &queryParams,
 	})
+	if response != nil {
+		defer response.Body.Close()
+	}
 	if err != nil {
 		return nil, err
 	}
-	defer response.Body.Close()
 
 	var rooms []RoomWithoutMembers
 	err = common.DecodeResponseBody(response.Body, &rooms)
@@ -334,13 +353,15 @@ func (cs *coreService) getRoomsForUser(
 
 	response, err := common.RequestWithSuToken(cs.underlyingInstance, ctx, client.RequestOptions{
 		Method:      http.MethodGet,
-		Path:        fmt.Sprintf("/users/%s/rooms", userID),
+		Path:        fmt.Sprintf("/users/%s/rooms", url.PathEscape(userID)),
 		QueryParams: &queryParams,
 	})
+	if response != nil {
+		defer response.Body.Close()
+	}
 	if err != nil {
 		return nil, err
 	}
-	defer response.Body.Close()
 
 	var rooms []Room
 	err = common.DecodeResponseBody(response.Body, &rooms)
@@ -375,10 +396,12 @@ func (cs *coreService) CreateRoom(ctx context.Context, options CreateRoomOptions
 			Body:   requestBody,
 		},
 	)
+	if response != nil {
+		defer response.Body.Close()
+	}
 	if err != nil {
 		return Room{}, err
 	}
-	defer response.Body.Close()
 
 	var room Room
 	err = common.DecodeResponseBody(response.Body, &room)
@@ -411,13 +434,15 @@ func (cs *coreService) UpdateRoom(ctx context.Context, roomID string, options Up
 
 	response, err := common.RequestWithSuToken(cs.underlyingInstance, ctx, client.RequestOptions{
 		Method: http.MethodPut,
-		Path:   fmt.Sprintf("/rooms/%s", roomID),
+		Path:   fmt.Sprintf("/rooms/%s", url.PathEscape(roomID)),
 		Body:   requestBody,
 	})
+	if response != nil {
+		defer response.Body.Close()
+	}
 	if err != nil {
 		return err
 	}
-	defer response.Body.Close()
 
 	return nil
 }
@@ -426,12 +451,14 @@ func (cs *coreService) UpdateRoom(ctx context.Context, roomID string, options Up
 func (cs *coreService) DeleteRoom(ctx context.Context, roomID string) error {
 	response, err := common.RequestWithSuToken(cs.underlyingInstance, ctx, client.RequestOptions{
 		Method: http.MethodDelete,
-		Path:   fmt.Sprintf("/rooms/%s", roomID),
+		Path:   fmt.Sprintf("/rooms/%s", url.PathEscape(roomID)),
 	})
+	if response != nil {
+		defer response.Body.Close()
+	}
 	if err != nil {
 		return err
 	}
-	defer response.Body.Close()
 
 	return nil
 }
@@ -450,13 +477,15 @@ func (cs *coreService) AddUsersToRoom(ctx context.Context, roomID string, userID
 
 	response, err := common.RequestWithSuToken(cs.underlyingInstance, ctx, client.RequestOptions{
 		Method: http.MethodPut,
-		Path:   fmt.Sprintf("/rooms/%s/users/add", roomID),
+		Path:   fmt.Sprintf("/rooms/%s/users/add", url.PathEscape(roomID)),
 		Body:   requestBody,
 	})
+	if response != nil {
+		defer response.Body.Close()
+	}
 	if err != nil {
 		return err
 	}
-	defer response.Body.Close()
 
 	return nil
 }
@@ -475,13 +504,15 @@ func (cs *coreService) RemoveUsersFromRoom(ctx context.Context, roomID string, u
 
 	response, err := common.RequestWithSuToken(cs.underlyingInstance, ctx, client.RequestOptions{
 		Method: http.MethodPut,
-		Path:   fmt.Sprintf("/rooms/%s/users/remove", roomID),
+		Path:   fmt.Sprintf("/rooms/%s/users/remove", url.PathEscape(roomID)),
 		Body:   requestBody,
 	})
+	if response != nil {
+		defer response.Body.Close()
+	}
 	if err != nil {
 		return err
 	}
-	defer response.Body.Close()
 
 	return nil
 }
@@ -507,13 +538,15 @@ func (cs *coreService) SendMessage(ctx context.Context, options SendMessageOptio
 		options.SenderID,
 		client.RequestOptions{
 			Method: http.MethodPost,
-			Path:   fmt.Sprintf("/rooms/%s/messages", options.RoomID),
+			Path:   fmt.Sprintf("/rooms/%s/messages", url.PathEscape(options.RoomID)),
 			Body:   requestBody,
 		})
+	if response != nil {
+		defer response.Body.Close()
+	}
 	if err != nil {
 		return 0, err
 	}
-	defer response.Body.Close()
 
 	var messageResponse map[string]uint
 	err = common.DecodeResponseBody(response.Body, &messageResponse)
@@ -538,14 +571,14 @@ func (cs *coreService) SendMultipartMessage(
 	}
 
 	requestParts := make([]interface{}, len(options.Parts))
-	g := errgroup.Group{}
+	g, gCtx := errgroup.WithContext(ctx)
 
 	for i, part := range options.Parts {
 		switch p := part.(type) {
 		case NewAttachmentPart:
 			i := i
 			g.Go(func() error {
-				uploadedPart, err := cs.uploadAttachment(ctx, options.SenderID, options.RoomID, p)
+				uploadedPart, err := cs.uploadAttachment(gCtx, options.SenderID, options.RoomID, p)
 				requestParts[i] = uploadedPart
 				return err
 			})
@@ -571,14 +604,16 @@ func (cs *coreService) SendMultipartMessage(
 		options.SenderID,
 		client.RequestOptions{
 			Method: http.MethodPost,
-			Path:   fmt.Sprintf("/rooms/%s/messages", options.RoomID),
+			Path:   fmt.Sprintf("/rooms/%s/messages", url.PathEscape(options.RoomID)),
 			Body:   requestBody,
 		},
 	)
+	if response != nil {
+		defer response.Body.Close()
+	}
 	if err != nil {
 		return 0, err
 	}
-	defer response.Body.Close()
 
 	var messageResponse map[string]uint
 	err = common.DecodeResponseBody(response.Body, &messageResponse)
@@ -650,14 +685,16 @@ func (cs *coreService) requestPresignedURL(
 		senderID,
 		client.RequestOptions{
 			Method: http.MethodPost,
-			Path:   fmt.Sprintf("/rooms/%s/attachments", roomID),
+			Path:   fmt.Sprintf("/rooms/%s/attachments", url.PathEscape(roomID)),
 			Body:   body,
 		},
 	)
+	if res != nil {
+		defer res.Body.Close()
+	}
 	if err != nil {
 		return "", "", err
 	}
-	defer res.Body.Close()
 
 	var resBody map[string]string
 	if err := common.DecodeResponseBody(res.Body, &resBody); err != nil {
@@ -684,10 +721,12 @@ func (cs *coreService) uploadToURL(
 	req.Header.Add("content-length", strconv.Itoa(contentLength))
 
 	res, err := client.Do(req.WithContext(ctx))
+	if res != nil {
+		defer res.Body.Close()
+	}
 	if err != nil {
 		return err
 	}
-	defer res.Body.Close()
 	if res.StatusCode < 200 || res.StatusCode >= 300 {
 		return fmt.Errorf("unexpected status: %v", res.Status)
 	}
@@ -711,12 +750,124 @@ func (cs *coreService) SendSimpleMessage(
 func (cs *coreService) DeleteMessage(ctx context.Context, options DeleteMessageOptions) error {
 	response, err := common.RequestWithSuToken(cs.underlyingInstance, ctx, client.RequestOptions{
 		Method: http.MethodDelete,
-		Path:   fmt.Sprintf("/rooms/%s/messages/%d", options.RoomID, options.MessageID),
+		Path:   fmt.Sprintf("/rooms/%s/messages/%d", url.PathEscape(options.RoomID), options.MessageID),
 	})
+	if response != nil {
+		defer response.Body.Close()
+	}
 	if err != nil {
 		return nil
 	}
-	defer response.Body.Close()
+
+	return nil
+}
+
+// EditMessage edits an existing message in a room.
+func (cs *coreService) EditMessage(ctx context.Context, options EditMessageOptions) error {
+	if options.Text == "" {
+		return errors.New("You must provide some text for the message")
+	}
+
+	if options.SenderID == "" {
+		return errors.New("You must provide the ID of the user editing the message")
+	}
+
+	if options.RoomID == "" {
+		return errors.New("You must provide the ID of the room in which the message to edit belongs")
+	}
+
+	requestBody, err := common.CreateRequestBody(map[string]string{"text": options.Text})
+	if err != nil {
+		return err
+	}
+
+	response, err := common.RequestWithUserToken(
+		cs.underlyingInstance,
+		ctx,
+		options.SenderID,
+		client.RequestOptions{
+			Method: http.MethodPut,
+			Path:   fmt.Sprintf("/rooms/%s/messages/%d", url.PathEscape(options.RoomID), options.MessageID),
+			Body:   requestBody,
+		})
+	if response != nil {
+		defer response.Body.Close()
+	}
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// EditSimpleMessage edits an existing message in a room, replacing it with a simple message.
+func (cs *coreService) EditSimpleMessage(ctx context.Context, options EditSimpleMessageOptions) error {
+	return cs.EditMultipartMessage(ctx, EditMultipartMessageOptions{
+		RoomID:    options.RoomID,
+		MessageID: options.MessageID,
+		SenderID:  options.SenderID,
+		Parts:     []NewPart{NewInlinePart{Type: "text/plain", Content: options.Text}},
+	})
+}
+
+// EditMultipartMessage edits an existing message in a room, replacing it with a multipart message.
+func (cs *coreService) EditMultipartMessage(ctx context.Context, options EditMultipartMessageOptions) error {
+	if len(options.Parts) == 0 {
+		return errors.New("You must provide at least one message part")
+	}
+
+	if options.SenderID == "" {
+		return errors.New("You must provide the ID of the user editing the message")
+	}
+
+	if options.RoomID == "" {
+		return errors.New("You must provide the ID of the room in which the message to edit belongs")
+	}
+
+	requestParts := make([]interface{}, len(options.Parts))
+	g, gCtx := errgroup.WithContext(ctx)
+
+	for i, part := range options.Parts {
+		switch p := part.(type) {
+		case NewAttachmentPart:
+			i := i
+			g.Go(func() error {
+				uploadedPart, err := cs.uploadAttachment(gCtx, options.SenderID, options.RoomID, p)
+				requestParts[i] = uploadedPart
+				return err
+			})
+		default:
+			requestParts[i] = part
+		}
+	}
+
+	if err := g.Wait(); err != nil {
+		return fmt.Errorf("Failed to upload attachment: %v", err)
+	}
+
+	requestBody, err := common.CreateRequestBody(
+		map[string]interface{}{"parts": requestParts},
+	)
+	if err != nil {
+		return err
+	}
+
+	response, err := common.RequestWithUserToken(
+		cs.underlyingInstance,
+		ctx,
+		options.SenderID,
+		client.RequestOptions{
+			Method: http.MethodPut,
+			Path:   fmt.Sprintf("/rooms/%s/messages/%d", url.PathEscape(options.RoomID), options.MessageID),
+			Body:   requestBody,
+		},
+	)
+	if response != nil {
+		defer response.Body.Close()
+	}
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -791,13 +942,15 @@ func (cs *coreService) fetchMessages(
 
 	response, err := common.RequestWithSuToken(cs.underlyingInstance, ctx, client.RequestOptions{
 		Method:      http.MethodGet,
-		Path:        fmt.Sprintf("/rooms/%s/messages", roomID),
+		Path:        fmt.Sprintf("/rooms/%s/messages", url.PathEscape(roomID)),
 		QueryParams: &queryParams,
 	})
+	if response != nil {
+		defer response.Body.Close()
+	}
 	if err != nil {
 		return err
 	}
-	defer response.Body.Close()
 
 	err = common.DecodeResponseBody(response.Body, target)
 	if err != nil {
