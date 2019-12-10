@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased](https://github.com/pusher/chatkit-server-go/compare/3.1.0...HEAD)
 
-## [3.2.0](https://github.com/pusher/chatkit-server-go/compare/3.1.0...3.2.0)
+## [3.3.0](https://github.com/pusher/chatkit-server-go/compare/3.1.0...3.3.0)
 
 ### Additions
 
@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 - Parameters passed in URL components are now URL encoded.
 - Response bodies are Close'd even if an err occurs.
+
+## 3.2.0 Yanked
 
 ## [3.1.0](https://github.com/pusher/chatkit-server-go/compare/3.0.0...3.1.0)
 
