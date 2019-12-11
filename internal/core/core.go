@@ -63,9 +63,9 @@ type Service interface {
 		options FetchMultipartMessagesOptions,
 	) ([]MultipartMessage, error)
 	DeleteMessage(ctx context.Context, options DeleteMessageOptions) error
-	EditMessage(ctx context.Context, options EditMessageOptions) error
-	EditMultipartMessage(ctx context.Context, options EditMultipartMessageOptions) error
-	EditSimpleMessage(ctx context.Context, options EditSimpleMessageOptions) error
+	EditMessage(ctx context.Context, roomID string, messageID uint, options EditMessageOptions) error
+	EditMultipartMessage(ctx context.Context, roomID string, messageID uint, options EditMultipartMessageOptions) error
+	EditSimpleMessage(ctx context.Context, roomID string, messageID uint, options EditSimpleMessageOptions) error
 
 	// Generic requests
 	Request(ctx context.Context, options client.RequestOptions) (*http.Response, error)
@@ -763,7 +763,7 @@ func (cs *coreService) DeleteMessage(ctx context.Context, options DeleteMessageO
 }
 
 // EditMessage edits an existing message in a room.
-func (cs *coreService) EditMessage(ctx context.Context, options EditMessageOptions) error {
+func (cs *coreService) EditMessage(ctx context.Context, roomID string, messageID uint, options EditMessageOptions) error {
 	if options.Text == "" {
 		return errors.New("You must provide some text for the message")
 	}
@@ -772,7 +772,7 @@ func (cs *coreService) EditMessage(ctx context.Context, options EditMessageOptio
 		return errors.New("You must provide the ID of the user editing the message")
 	}
 
-	if options.RoomID == "" {
+	if roomID == "" {
 		return errors.New("You must provide the ID of the room in which the message to edit belongs")
 	}
 
@@ -787,7 +787,7 @@ func (cs *coreService) EditMessage(ctx context.Context, options EditMessageOptio
 		options.SenderID,
 		client.RequestOptions{
 			Method: http.MethodPut,
-			Path:   fmt.Sprintf("/rooms/%s/messages/%d", url.PathEscape(options.RoomID), options.MessageID),
+			Path:   fmt.Sprintf("/rooms/%s/messages/%d", url.PathEscape(roomID), messageID),
 			Body:   requestBody,
 		})
 	if response != nil {
@@ -801,17 +801,15 @@ func (cs *coreService) EditMessage(ctx context.Context, options EditMessageOptio
 }
 
 // EditSimpleMessage edits an existing message in a room, replacing it with a simple message.
-func (cs *coreService) EditSimpleMessage(ctx context.Context, options EditSimpleMessageOptions) error {
-	return cs.EditMultipartMessage(ctx, EditMultipartMessageOptions{
-		RoomID:    options.RoomID,
-		MessageID: options.MessageID,
-		SenderID:  options.SenderID,
-		Parts:     []NewPart{NewInlinePart{Type: "text/plain", Content: options.Text}},
+func (cs *coreService) EditSimpleMessage(ctx context.Context, roomID string, messageID uint, options EditSimpleMessageOptions) error {
+	return cs.EditMultipartMessage(ctx, roomID, messageID, EditMultipartMessageOptions{
+		SenderID: options.SenderID,
+		Parts:    []NewPart{NewInlinePart{Type: "text/plain", Content: options.Text}},
 	})
 }
 
 // EditMultipartMessage edits an existing message in a room, replacing it with a multipart message.
-func (cs *coreService) EditMultipartMessage(ctx context.Context, options EditMultipartMessageOptions) error {
+func (cs *coreService) EditMultipartMessage(ctx context.Context, roomID string, messageID uint, options EditMultipartMessageOptions) error {
 	if len(options.Parts) == 0 {
 		return errors.New("You must provide at least one message part")
 	}
@@ -820,7 +818,7 @@ func (cs *coreService) EditMultipartMessage(ctx context.Context, options EditMul
 		return errors.New("You must provide the ID of the user editing the message")
 	}
 
-	if options.RoomID == "" {
+	if roomID == "" {
 		return errors.New("You must provide the ID of the room in which the message to edit belongs")
 	}
 
@@ -832,7 +830,7 @@ func (cs *coreService) EditMultipartMessage(ctx context.Context, options EditMul
 		case NewAttachmentPart:
 			i := i
 			g.Go(func() error {
-				uploadedPart, err := cs.uploadAttachment(gCtx, options.SenderID, options.RoomID, p)
+				uploadedPart, err := cs.uploadAttachment(gCtx, options.SenderID, roomID, p)
 				requestParts[i] = uploadedPart
 				return err
 			})
@@ -858,7 +856,7 @@ func (cs *coreService) EditMultipartMessage(ctx context.Context, options EditMul
 		options.SenderID,
 		client.RequestOptions{
 			Method: http.MethodPut,
-			Path:   fmt.Sprintf("/rooms/%s/messages/%d", url.PathEscape(options.RoomID), options.MessageID),
+			Path:   fmt.Sprintf("/rooms/%s/messages/%d", url.PathEscape(roomID), messageID),
 			Body:   requestBody,
 		},
 	)

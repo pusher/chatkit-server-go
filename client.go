@@ -371,19 +371,22 @@ func (c *Client) DeleteMessage(ctx context.Context, options DeleteMessageOptions
 	return c.coreServiceV6.DeleteMessage(ctx, options)
 }
 
-// EditMessage replaces an existing message in a room.
-func (c *Client) EditMessage(ctx context.Context, options EditMessageOptions) error {
-	return c.coreServiceV2.EditMessage(ctx, options)
+// EditMessage identifies an existing message by both its room and message id
+// in order to replace it's content and sender id with updated values.
+func (c *Client) EditMessage(ctx context.Context, roomID string, messageID uint, options EditMessageOptions) error {
+	return c.coreServiceV2.EditMessage(ctx, roomID, messageID, options)
 }
 
-// EditMultipartMessage replaces an existing message in a room with a multipart message.
-func (c *Client) EditMultipartMessage(ctx context.Context, options EditMultipartMessageOptions) error {
-	return c.coreServiceV6.EditMultipartMessage(ctx, options)
+// EditMultipartMessage identifies an existing message by both its room and message id
+// in order to replace it's content and sender id with updated values.
+func (c *Client) EditMultipartMessage(ctx context.Context, roomID string, messageID uint, options EditMultipartMessageOptions) error {
+	return c.coreServiceV6.EditMultipartMessage(ctx, roomID, messageID, options)
 }
 
-// EditSimpleMessage replaces an existing message in a room a simple multipart message.
-func (c *Client) EditSimpleMessage(ctx context.Context, options EditSimpleMessageOptions) error {
-	return c.coreServiceV6.EditSimpleMessage(ctx, options)
+// EditSimpleMessage identifies an existing message by both its room and message id
+// in order to replace it's content and sender id with updated values.
+func (c *Client) EditSimpleMessage(ctx context.Context, roomID string, messageID uint, options EditSimpleMessageOptions) error {
+	return c.coreServiceV6.EditSimpleMessage(ctx, roomID, messageID, options)
 }
 
 // CoreRequest allows making requests to the core chatkit service and returns a raw HTTP response.

@@ -1133,28 +1133,22 @@ func TestEditMessages(t *testing.T) {
 
 		Convey("Messages can be edited", func() {
 			Convey("Messages can be edited using the v2 api", func() {
-				err := client.EditMessage(ctx, EditMessageOptions{
-					RoomID:    room.ID,
-					MessageID: messageID1,
-					Text:      "one-edited",
-					SenderID:  userID,
+				err := client.EditMessage(ctx, room.ID, messageID1, EditMessageOptions{
+					Text:     "one-edited",
+					SenderID: userID,
 				})
 				So(err, ShouldBeNil)
 			})
 			Convey("Messages can be edited using simple multipart messages", func() {
-				err := client.EditSimpleMessage(ctx, EditSimpleMessageOptions{
-					RoomID:    room.ID,
-					MessageID: messageID2,
-					Text:      "two-edited",
-					SenderID:  userID,
+				err := client.EditSimpleMessage(ctx, room.ID, messageID2, EditSimpleMessageOptions{
+					Text:     "two-edited",
+					SenderID: userID,
 				})
 				So(err, ShouldBeNil)
 			})
 			Convey("Messages can be edited using multipart messages", func() {
-				err := client.EditMultipartMessage(ctx, EditMultipartMessageOptions{
-					RoomID:    room.ID,
-					MessageID: messageID3,
-					SenderID:  userID,
+				err := client.EditMultipartMessage(ctx, room.ID, messageID3, EditMultipartMessageOptions{
+					SenderID: userID,
 					Parts: []NewPart{
 						NewInlinePart{Type: "text/plain", Content: "three-edited"},
 					}})
